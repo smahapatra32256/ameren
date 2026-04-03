@@ -1,0 +1,5 @@
+faiss-cpu
+google-cloud-aiplatform
+pandas
+tqdm
+plantuml
