@@ -1,0 +1,4 @@
+VBGROUP 5.0
+StartupProject=..\..\..\COM Test\util_Server\utilRegAccessLib\Project1.vbp
+Project=..\utilRegAccessLib\utilRegAccessLib.vbp
+Project=util_DBConnectMgr.vbp

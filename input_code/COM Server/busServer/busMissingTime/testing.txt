@@ -1,0 +1,12 @@
+before change
+pay process date = 02/06/2024, schedule date = 02/01/2024 5:00:00 AM, Process = False, CopySupervisor = False, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/01/2024 1:30:00 PM, Process = False, CopySupervisor = False, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/02/2024 11:00:00 AM, Process = False, CopySupervisor = False, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/02/2024 1:30:00 PM, Process = False, CopySupervisor = False, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/05/2024 5:00:00 AM, Process = True, CopySupervisor = False, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/05/2024 11:00:00 AM, Process = True, CopySupervisor = False, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/05/2024 1:00:00 PM, Process = True, CopySupervisor = True, DayAfterDeadline = False
+pay process date = 02/06/2024, schedule date = 02/06/2024 5:00:00 AM, Process = True, CopySupervisor = True, DayAfterDeadline = True
+pay process date = 02/06/2024, schedule date = 02/07/2024 5:00:00 AM, Process = False, CopySupervisor = False, DayAfterDeadline = False
+
+after change

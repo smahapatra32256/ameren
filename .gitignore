@@ -9,7 +9,7 @@ venv/
 
 # Outputs and user data
 output/
-input_code/
+# input_code/
 *.db
 *.sqlite3
 
