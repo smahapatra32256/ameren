@@ -45,10 +45,12 @@ Block Type: {block_type}
 {code}
 </TARGET_CODE>
 
-Instructions:
-1. Parse the TARGET_CODE logic into a sequence of steps, decisions (if/else), and loops.
-2. If TARGET_CODE calls another method, cleanly define that as an activity node.
-3. Write ONLY the PlantUML string starting with `@startuml` and ending with `@enduml`. DO NOT use markdown code blocks like ```plantuml, just output the raw text.
+CRITICAL RULES FOR PLANTUML SYNTAX:
+1. DO NOT use `try`, `catch`, `end try`, `finally`, or `throw` keywords. PlantUML Activity Diagrams do NOT support them.
+2. For error handling, use standard decision diamonds: `if (Error occurred?) then (yes) ... else (no) ... endif`.
+3. DO NOT use `partition` unless absolutely necessary for large logical blocks.
+4. DO NOT use single quotes `'` for comments inside the diagram code; use the `note` syntax instead.
+5. Write ONLY the PlantUML string starting with `@startuml` and ending with `@enduml`. DO NOT use markdown code blocks.
 
 Example format:
 @startuml

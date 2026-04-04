@@ -13,26 +13,13 @@ import vertexai
 
 from config.settings import (
     PROJECT_ID, REGION, METADATA_DB_PATH, FAISS_INDEX_PATH, 
-    INPUT_DIR, OUTPUT_DIR, RULES_OUTPUT_DIR, UML_OUTPUT_DIR, UML_COMPONENTS_DIR, MODEL_NAME
+    INPUT_DIR, OUTPUT_DIR, RULES_OUTPUT_DIR, UML_OUTPUT_DIR, UML_COMPONENTS_DIR, MODEL_NAME,
+    PLANTUML_JAR_PATH, GRAPHVIZ_DOT_PATH
 )
 from parsers.vbnet_parser import VBNetParser
 from vector_store.faiss_manager import FAISSManager
 from llm_agents.rule_extractor import RuleExtractor
 from llm_agents.uml_generator import UMLGenerator
-import urllib.request
-
-# Patch urllib to bypass PlantUML 403
-original_urlopen = urllib.request.urlopen
-def patched_urlopen(url, data=None, timeout=None, **kwargs):
-    if isinstance(url, urllib.request.Request):
-        url.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-    elif isinstance(url, str):
-        url = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
-    if timeout is None:
-        return original_urlopen(url, data, **kwargs)
-    else:
-        return original_urlopen(url, data, timeout, **kwargs)
-urllib.request.urlopen = patched_urlopen
 
 # Thread-safe locks
 csv_lock = threading.Lock()
@@ -95,23 +82,6 @@ class PipelineOrchestrator:
                     with open(puml_path, "w", encoding="utf-8") as f:
                         f.write(uml_str)
 
-                    try:
-                        from plantuml import PlantUML
-                        import requests as req_lib
-                        p = PlantUML(url="http://www.plantuml.com/plantuml/png/")
-                        png_url = p.get_url(uml_str)
-                        r = req_lib.get(png_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
-                        if r.status_code == 200 and len(r.content) > 100:
-                            png_path = os.path.join(UML_COMPONENTS_DIR, f"{clean_name}.png")
-                            with open(png_path, "wb") as f:
-                                f.write(r.content)
-                            # Delete .puml after successful PNG
-                            try:
-                                os.remove(puml_path)
-                            except OSError:
-                                pass
-                    except Exception:
-                        pass  # Keep .puml as fallback if PNG fails
             except Exception:
                 pass
 
@@ -267,9 +237,6 @@ class PipelineOrchestrator:
             with open(puml_path, "w", encoding="utf-8") as f:
                 f.write(puml_content)
 
-            # Generate PNG / SVG via PlantUML
-            self._render_puml_to_image(puml_content, UML_OUTPUT_DIR, "End_To_End_Flow")
-
         except Exception as e:
             print(f"  Failed to generate End-To-End flow: {e}")
             import traceback; traceback.print_exc()
@@ -286,59 +253,35 @@ class PipelineOrchestrator:
 
         print(f"Extraction complete. Check '{OUTPUT_DIR}' for all outputs.")
 
-    def _render_puml_to_image(self, puml_content, output_dir, base_name):
-        """Render PlantUML content to PNG (or SVG fallback) with retry backoff. Deletes .puml on success."""
-        import requests
-        import time
-        from plantuml import PlantUML
-        puml_path = os.path.join(output_dir, f"{base_name}.puml")
+    def render_all_puml_locally(self):
+        """Render all .puml files locally using plantuml.jar and Graphviz."""
+        print("--- 6. Rendering PlantUML Diagrams Locally ---")
+        if not os.path.exists(PLANTUML_JAR_PATH):
+            print(f"  ⚠ PlantUML JAR not found at {PLANTUML_JAR_PATH}. Skipping local render.")
+            return
 
-        max_retries = 5
-        for attempt in range(max_retries):
-            try:
-                # Try PNG
-                p = PlantUML(url="http://www.plantuml.com/plantuml/png/")
-                req_url = p.get_url(puml_content)
-                r = requests.get(req_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}, timeout=60)
+        import subprocess
+        
+        # Render end-to-end flow
+        e2e_puml = os.path.join(UML_OUTPUT_DIR, "End_To_End_Flow.puml")
+        if os.path.exists(e2e_puml):
+            cmd = ['java', '-jar', PLANTUML_JAR_PATH]
+            if GRAPHVIZ_DOT_PATH and os.path.exists(GRAPHVIZ_DOT_PATH):
+                cmd.extend(['-graphvizdot', GRAPHVIZ_DOT_PATH])
+            cmd.append(e2e_puml)
+            
+            print(f"  Rendering End-To-End Flow...")
+            subprocess.run(cmd, shell=True)
 
-                if r.status_code == 200 and len(r.content) > 100:
-                    with open(os.path.join(output_dir, f"{base_name}.png"), "wb") as f:
-                        f.write(r.content)
-                    print(f"  ✓ {base_name}.png generated successfully")
-                    try: os.remove(puml_path)
-                    except OSError: pass
-                    return
-
-                if r.status_code in (429, 500, 502, 503, 509):
-                    wait = min(10 * (2 ** attempt), 60)
-                    print(f"  ⏳ PlantUML rate-limited ({r.status_code}), retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
-                    time.sleep(wait)
-                    continue
-
-                # Try SVG fallback (non-retryable status)
-                p_svg = PlantUML(url="http://www.plantuml.com/plantuml/svg/")
-                svg_url = p_svg.get_url(puml_content)
-                r2 = requests.get(svg_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=60)
-                if r2.status_code == 200:
-                    with open(os.path.join(output_dir, f"{base_name}.svg"), "wb") as f:
-                        f.write(r2.content)
-                    print(f"  ✓ {base_name}.svg generated (SVG fallback)")
-                    try: os.remove(puml_path)
-                    except OSError: pass
-                    return
-
-                print(f"  PlantUML server returned {r.status_code} — .puml file kept for manual rendering")
-                return
-
-            except requests.exceptions.Timeout:
-                wait = min(10 * (2 ** attempt), 60)
-                print(f"  ⏳ PlantUML timed out, retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
-                time.sleep(wait)
-            except Exception as e:
-                print(f"  Image generation failed ({e}) — .puml file kept for manual rendering")
-                return
-
-        print(f"  ✗ All {max_retries} attempts failed — .puml file kept for manual rendering")
+        # Render component diagrams
+        print(f"  Rendering Component Diagrams...")
+        cmd = ['java', '-jar', PLANTUML_JAR_PATH]
+        if GRAPHVIZ_DOT_PATH and os.path.exists(GRAPHVIZ_DOT_PATH):
+            cmd.extend(['-graphvizdot', GRAPHVIZ_DOT_PATH])
+        cmd.append(os.path.join(UML_COMPONENTS_DIR, "*.puml"))
+        
+        subprocess.run(cmd, shell=True)
+        print("  ✓ Local rendering complete.")
 
     def _fallback_llm_macro(self):
         """Fallback: use LLM to generate macro diagram if no call graph data exists."""
@@ -356,15 +299,6 @@ class PipelineOrchestrator:
                 if macro_uml:
                     with open(os.path.join(UML_OUTPUT_DIR, "End_To_End_Flow.puml"), "w", encoding="utf-8") as f:
                         f.write(macro_uml)
-
-                    from plantuml import PlantUML
-                    import requests
-                    p_server = PlantUML(url="http://www.plantuml.com/plantuml/png/")
-                    req_url = p_server.get_url(macro_uml)
-                    r = requests.get(req_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
-                    if r.status_code == 200:
-                        with open(os.path.join(UML_OUTPUT_DIR, "End_To_End_Flow.png"), "wb") as f:
-                            f.write(r.content)
         except Exception as e:
             print(f"  Fallback LLM macro also failed: {e}")
 
@@ -374,4 +308,5 @@ if __name__ == "__main__":
     orchestrator.run_parser_and_indexer()
     orchestrator.process_workload()
     orchestrator.generate_end_to_end_flow()
+    orchestrator.render_all_puml_locally()
     print("Pipeline Execution Complete!")

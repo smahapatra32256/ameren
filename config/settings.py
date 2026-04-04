@@ -21,9 +21,13 @@ MAX_EMBEDDING_CHARS = 40000   # ~10k tokens safe limit for text-embedding-004 (m
 MAX_CHUNK_LINES = 300         # Split code blocks larger than this into sub-chunks
 
 # Paths
-INPUT_DIR = os.path.join(BASE_DIR, "input_code", "COM Server", "util_Server")
+INPUT_DIR = os.path.join(BASE_DIR, "input_code", "COM Server", "dbServer")
 RULES_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "rules")
 UML_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "uml")
+
+# Local Rendering
+PLANTUML_JAR_PATH = os.path.join(BASE_DIR, "plantuml.jar")
+GRAPHVIZ_DOT_PATH = "C:\\Program Files\\Graphviz\\bin\\dot.exe"
 
 # Ensure directories exist
 os.makedirs(INPUT_DIR, exist_ok=True)

@@ -8,7 +8,12 @@ A production-ready, parallel Map-Reduce pipeline that extracts business rules an
 
 1. **Python 3.10+**
 2. **Google Cloud Account** with Vertex AI API enabled
-3. Authenticate locally:
+3. **Java Runtime Environment (JRE)** (Required for local PlantUML rendering)
+   - Download from Adoptium: [OpenJDK 25 (x64 Windows)](https://adoptium.net/download?link=https%3A%2F%2Fgithub.com%2Fadoptium%2Ftemurin25-binaries%2Freleases%2Fdownload%2Fjdk-25.0.2%252B10%2FOpenJDK25U-jdk_x64_windows_hotspot_25.0.2_10.msi&vendor=Adoptium)
+4. **Graphviz** (Required for complex UML layout generation)
+   - *Windows:* `winget install graphviz` OR use the direct installer: [Graphviz 14.1.4 Installer](https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/14.1.4/windows_10_cmake_Release_graphviz-install-14.1.4-win64.exe)
+   - **Important:** Make sure to select the option to add Graphviz to your system PATH during installation.
+5. Authenticate locally:
    ```bash
    gcloud auth application-default login
    ```
@@ -42,15 +47,21 @@ A production-ready, parallel Map-Reduce pipeline that extracts business rules an
    pip install -r requirements.txt
    ```
 
-4. **Configure your GCP Project:**
-   - Edit `config/settings.py` and set your `PROJECT_ID`:
-     ```python
-     PROJECT_ID = os.getenv("GCP_PROJECT_ID", "your-project-id-here")
-     ```
-   - Or export as an environment variable:
-     ```powershell
-     $env:GCP_PROJECT_ID="your-project-id"
-     ```
+4. **Download PlantUML:**
+   - Download the JAR file: [plantuml-1.2026.2.jar](https://github.com/plantuml/plantuml/releases/download/v1.2026.2/plantuml-1.2026.2.jar)
+   - Rename it to `plantuml.jar` and place it directly in the root directory of this project (`VbNet_Extractor/`).
+
+5. **Configure your Project & Paths:**
+   - Edit `config/settings.py`:
+     - **GCP Project:** Set your `PROJECT_ID` or export as environment variable `$env:GCP_PROJECT_ID="your-project-id"`.
+     - **Graphviz Path:** If Graphviz was not added to your PATH (e.g. via winget), explicitly set its location:
+       ```python
+       GRAPHVIZ_DOT_PATH = "C:\\Program Files\\Graphviz\\bin\\dot.exe"
+       ```
+     - **Target Codebase:** By default, it scans everything in `input_code`. To narrow it down, edit `INPUT_DIR`:
+       ```python
+       INPUT_DIR = os.path.join(BASE_DIR, "input_code", "SpecificFolder")
+       ```
 
 ---
 
@@ -82,23 +93,19 @@ VbNet_Extractor/
 │   └── ...
 ```
 
-**To process a specific subfolder only**, edit `config/settings.py`:
-```python
-INPUT_DIR = os.path.join(BASE_DIR, "input_code", "COM Server", "busServer")
-```
-
 ### 2. Run the Pipeline
 
 ```bash
 python pipeline_orchestrator.py
 ```
 
-The pipeline runs in 5 stages:
+The pipeline runs in 6 stages:
 1. **Parse** — Recursively scans all VB files, extracts Classes/Modules/Subs/Functions, splits large blocks into chunks
 2. **Index** — Builds FAISS vector index for context retrieval (RAG)
-3. **Extract** — Runs 50 parallel LLM workers for rule extraction + individual UML generation
+3. **Extract** — Runs 50 parallel LLM workers for rule extraction + individual UML `.puml` generation
 4. **Complete** — Saves all rules and component diagrams
 5. **End-to-End Flow** — Builds deterministic call graph diagram from real code analysis
+6. **Local Rendering** — Automatically runs `plantuml.jar` with Graphviz to convert all `.puml` files to `.png` images locally.
 
 ### 3. View Outputs
 
@@ -161,6 +168,8 @@ It will **automatically skip all already-processed chunks** and resume from wher
 | `MAX_OUTPUT_TOKENS` | `8192` | Max LLM output tokens |
 | `MAX_CHUNK_LINES` | `300` | Split code blocks larger than this |
 | `MAX_WORKERS` | `50` | Parallel LLM threads (in `pipeline_orchestrator.py`) |
+| `PLANTUML_JAR_PATH` | `BASE_DIR/plantuml.jar` | Path to the local PlantUML JAR file |
+| `GRAPHVIZ_DOT_PATH` | `C:\Program Files\...` | Path to the Graphviz dot.exe file |
 
 ---
 
@@ -170,6 +179,6 @@ It will **automatically skip all already-processed chunks** and resume from wher
 |---|---|---|
 | `429 Resource exhausted` | Too many parallel API calls | Reduce `MAX_WORKERS` in `pipeline_orchestrator.py` (try 20-30). Built-in retry with backoff handles occasional 429s automatically. |
 | `input token count exceeds 20000` | Code chunk too large for embeddings | Reduce `MAX_CHUNK_LINES` in `config/settings.py` (try 200) |
-| `PlantUML 509 Bandwidth Exceeded` | Too many PNG requests to public server | Wait 30s and re-run. SVG fallback is automatic. For production, use a local PlantUML install. |
+| `Dot Executable Not Found` | PlantUML cannot locate Graphviz | Ensure Graphviz is installed and update `GRAPHVIZ_DOT_PATH` in `config/settings.py` to point to `dot.exe`. |
 | `Error tokenizing data` | LLM returned malformed CSV | Non-fatal — chunk is skipped. Rules from other chunks are unaffected. |
 | `ModuleNotFoundError` | Missing Python package | Run `pip install -r requirements.txt` |

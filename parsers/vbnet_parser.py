@@ -178,15 +178,15 @@ class VBNetParser:
                 if not stripped or stripped.startswith("'") or stripped.upper().startswith("REM "):
                     continue
                 
-                # Pattern: obj.Method( or Call Method
-                for m in re.finditer(r'(?:Call\s+|)(\w+)\.(\w+)\s*[\(]', line, re.IGNORECASE):
-                    rows.append((chunk['file_path'], chunk['name'], chunk['type'], 
-                                 f"{m.group(1)}.{m.group(2)}", stripped))
-                
-                # Pattern: standalone Call SubName
-                for m in re.finditer(r'\bCall\s+(\w+)\b', line, re.IGNORECASE):
-                    rows.append((chunk['file_path'], chunk['name'], chunk['type'],
-                                 m.group(1), stripped))
+                for pat in call_patterns:
+                    for m in pat.finditer(line):
+                        if len(m.groups()) == 2 and m.group(2):
+                            callee = f"{m.group(1)}.{m.group(2)}"
+                        else:
+                            callee = m.group(1)
+                        # Filter basic keywords and types
+                        if callee.lower() not in ('string', 'integer', 'boolean', 'true', 'false', 'msgbox'):
+                            rows.append((chunk['file_path'], chunk['name'], chunk['type'], callee, stripped))
         
         if rows:
             with sqlite3.connect(self.db_path) as conn:

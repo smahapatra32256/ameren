@@ -72,6 +72,9 @@ Sequence_Order|Rule_Flow|Rule_Task|Rule_Name|Rule|Actual_Code|Explanation
             match = re.search(r"\`\`\`(?:csv)?\n([\s\S]*?)\n\`\`\`", llm_output)
             if match:
                 return match.group(1).strip()
+            # Fallback if no markdown wrapper
+            if "Sequence_Order|Rule_Flow|" in llm_output:
+                return llm_output.strip()
             return ""
         except Exception:
             return ""
