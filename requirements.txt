@@ -3,3 +3,4 @@ google-cloud-aiplatform
 pandas
 tqdm
 plantuml
+langchain_google_vertexai

@@ -73,22 +73,30 @@ stop
             code=chunk['content']
         )
 
-        try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=self.generation_config,
-                safety_settings=self.safety_settings
-            ).text
-            
-            # Clean up the output to make sure it's valid PlantUML
-            match = re.search(r"(@startuml[\s\S]*?@enduml)", response)
-            if match:
-                return match.group(1).strip()
-            return response.strip()
-            
-        except Exception as e:
-            print(f"Error generating UML for {chunk['name']}: {e}")
-            return ""
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config=self.generation_config,
+                    safety_settings=self.safety_settings
+                ).text
+                
+                match = re.search(r"(@startuml[\s\S]*?@enduml)", response)
+                if match:
+                    return match.group(1).strip()
+                return response.strip()
+                
+            except Exception as e:
+                err_str = str(e)
+                if '429' in err_str and attempt < max_retries - 1:
+                    wait = 5 * (2 ** attempt)
+                    time.sleep(wait)
+                    continue
+                elif '429' not in err_str:
+                    return ""
+        return ""
 
     def generate_macro_uml(self, all_names: List[str]) -> str:
         macro_prompt = f"""

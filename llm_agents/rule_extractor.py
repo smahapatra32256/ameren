@@ -86,24 +86,32 @@ Sequence_Order|Rule_Flow|Rule_Task|Rule_Name|Rule|Actual_Code|Explanation
             code=chunk['content']
         )
 
-        try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=self.generation_config,
-                safety_settings=self.safety_settings
-            ).text
-            
-            csv_str = self._extract_csv(response)
-            if not csv_str:
-                return pd.DataFrame()
-            
-            # Use StringIO directly to avoid deprecation warnings in newer pandas
-            import io
-            df = pd.read_csv(io.StringIO(csv_str), sep="|", header=0)
-            # Add trace to original chunk id
-            df['Source_Chunk_ID'] = chunk['id']
-            return df
-            
-        except Exception as e:
-            print(f"Error extracting rules for {chunk['name']}: {e}")
-            return pd.DataFrame()
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config=self.generation_config,
+                    safety_settings=self.safety_settings
+                ).text
+                
+                csv_str = self._extract_csv(response)
+                if not csv_str:
+                    return pd.DataFrame()
+                
+                import io
+                df = pd.read_csv(io.StringIO(csv_str), sep="|", header=0, on_bad_lines='skip')
+                df['Source_Chunk_ID'] = chunk['id']
+                return df
+                
+            except Exception as e:
+                err_str = str(e)
+                if '429' in err_str and attempt < max_retries - 1:
+                    wait = 5 * (2 ** attempt)  # 5s, 10s, 20s
+                    time.sleep(wait)
+                    continue
+                elif '429' not in err_str:
+                    return pd.DataFrame()
+        
+        return pd.DataFrame()

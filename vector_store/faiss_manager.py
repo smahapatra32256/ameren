@@ -18,7 +18,13 @@ class FAISSManager:
             model_name=model_name
         )
 
-    def build_index(self, batch_size=100):
+    def _truncate(self, text: str, max_chars: int = 15000) -> str:
+        """Truncate text to stay safely under the embedding model's token limit."""
+        if len(text) <= max_chars:
+            return text
+        return text[:max_chars]
+
+    def build_index(self):
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -32,16 +38,50 @@ class FAISSManager:
         print(f"Building FAISS index for {len(rows)} chunks...")
         
         all_embeddings = []
-        for i in range(0, len(rows), batch_size):
-            batch = rows[i:i+batch_size]
-            texts = [f"Name: {row['name']}\nCode:\n{row['content']}" for row in batch]
-            ids = [row['id'] for row in batch]
+        # Dynamic batching: accumulate until we approach the token limit
+        MAX_BATCH_CHARS = 30000  # ~10k tokens, safely under 20k API limit
+        batch_texts = []
+        batch_ids = []
+        batch_chars = 0
+        processed = 0
+
+        def flush_batch():
+            nonlocal batch_texts, batch_ids, batch_chars, processed
+            if not batch_texts:
+                return
+            try:
+                embs = self.embeddings.embed_documents(batch_texts)
+                all_embeddings.extend(embs)
+                self.id_mapping.extend(batch_ids)
+            except Exception as e:
+                # Fallback: embed one at a time
+                print(f"  Batch failed ({e}), falling back to single-doc mode...")
+                for t, doc_id in zip(batch_texts, batch_ids):
+                    try:
+                        emb = self.embeddings.embed_documents([t])
+                        all_embeddings.extend(emb)
+                        self.id_mapping.append(doc_id)
+                    except Exception as e2:
+                        print(f"  ⚠ Skipped chunk {doc_id}: {e2}")
+            processed += len(batch_texts)
+            print(f"Processed {processed} / {len(rows)}")
+            batch_texts = []
+            batch_ids = []
+            batch_chars = 0
+
+        for row in rows:
+            text = self._truncate(f"Name: {row['name']}\nCode:\n{row['content']}")
+            text_len = len(text)
             
-            # Request embeddings
-            batch_embeddings = self.embeddings.embed_documents(texts)
-            all_embeddings.extend(batch_embeddings)
-            self.id_mapping.extend(ids)
-            print(f"Processed {i + len(batch)} / {len(rows)}")
+            # Flush if adding this doc would exceed our char budget
+            if batch_chars + text_len > MAX_BATCH_CHARS and batch_texts:
+                flush_batch()
+            
+            batch_texts.append(text)
+            batch_ids.append(row['id'])
+            batch_chars += text_len
+
+        flush_batch()  # Final flush
 
         if all_embeddings:
             dimension = len(all_embeddings[0])
@@ -70,7 +110,7 @@ class FAISSManager:
                 print("Index not found. Build it first.")
                 return []
                 
-        query_vector = self.embeddings.embed_query(query)
+        query_vector = self.embeddings.embed_query(self._truncate(query))
         D, I = self.index.search(np.array([query_vector]).astype('float32'), k)
         
         results = []

@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Google Cloud Vertex AI settings
-PROJECT_ID = os.getenv("GCP_PROJECT_ID", "PROJECT_ID")
+PROJECT_ID = os.getenv("GCP_PROJECT_ID", "quiet-grail-431414-e7")
 REGION = os.getenv("GCP_REGION", "us-central1")
 MODEL_NAME = "gemini-2.5-flash"
 EMBEDDING_MODEL_NAME = "text-embedding-004"
@@ -17,9 +17,11 @@ METADATA_DB_PATH = os.path.join(OUTPUT_DIR, "metadata.db")
 BATCH_SIZE = 100
 MAX_OUTPUT_TOKENS = 8192
 TEMPERATURE = 0.0
+MAX_EMBEDDING_CHARS = 40000   # ~10k tokens safe limit for text-embedding-004 (max 20k tokens)
+MAX_CHUNK_LINES = 300         # Split code blocks larger than this into sub-chunks
 
 # Paths
-INPUT_DIR = os.path.join(BASE_DIR, "input_code")
+INPUT_DIR = os.path.join(BASE_DIR, "input_code", "COM Server", "util_Server")
 RULES_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "rules")
 UML_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "uml")
 
