@@ -38,50 +38,73 @@ class FAISSManager:
         print(f"Building FAISS index for {len(rows)} chunks...")
         
         all_embeddings = []
-        # Dynamic batching: accumulate until we approach the token limit
         MAX_BATCH_CHARS = 30000  # ~10k tokens, safely under 20k API limit
-        batch_texts = []
-        batch_ids = []
-        batch_chars = 0
-        processed = 0
-
-        def flush_batch():
-            nonlocal batch_texts, batch_ids, batch_chars, processed
-            if not batch_texts:
-                return
-            try:
-                embs = self.embeddings.embed_documents(batch_texts)
-                all_embeddings.extend(embs)
-                self.id_mapping.extend(batch_ids)
-            except Exception as e:
-                # Fallback: embed one at a time
-                print(f"  Batch failed ({e}), falling back to single-doc mode...")
-                for t, doc_id in zip(batch_texts, batch_ids):
-                    try:
-                        emb = self.embeddings.embed_documents([t])
-                        all_embeddings.extend(emb)
-                        self.id_mapping.append(doc_id)
-                    except Exception as e2:
-                        print(f"  ⚠ Skipped chunk {doc_id}: {e2}")
-            processed += len(batch_texts)
-            print(f"Processed {processed} / {len(rows)}")
-            batch_texts = []
-            batch_ids = []
-            batch_chars = 0
-
+        batches = []
+        current_batch_texts = []
+        current_batch_ids = []
+        current_chars = 0
+        
         for row in rows:
             text = self._truncate(f"Name: {row['name']}\nCode:\n{row['content']}")
             text_len = len(text)
             
-            # Flush if adding this doc would exceed our char budget
-            if batch_chars + text_len > MAX_BATCH_CHARS and batch_texts:
-                flush_batch()
+            if current_chars + text_len > MAX_BATCH_CHARS and current_batch_texts:
+                batches.append((current_batch_texts, current_batch_ids))
+                current_batch_texts = []
+                current_batch_ids = []
+                current_chars = 0
+                
+            current_batch_texts.append(text)
+            current_batch_ids.append(row['id'])
+            current_chars += text_len
             
-            batch_texts.append(text)
-            batch_ids.append(row['id'])
-            batch_chars += text_len
+        if current_batch_texts:
+            batches.append((current_batch_texts, current_batch_ids))
 
-        flush_batch()  # Final flush
+        id_mapping = []
+        
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from tqdm import tqdm
+        import time
+
+        def embed_batch(batch_tuple):
+            texts, ids = batch_tuple
+            for attempt in range(3):
+                try:
+                    embs = self.embeddings.embed_documents(texts)
+                    return embs, ids
+                except Exception as e:
+                    if '429' in str(e) and attempt < 2:
+                        time.sleep(5 * (2 ** attempt))
+                    else:
+                        return None, ids
+            return None, ids
+
+        print(f"Processing {len(batches)} batches in parallel...")
+        # Use up to 20 threads to not overwhelm embedding API
+        with ThreadPoolExecutor(max_workers=min(20, max(1, len(batches)))) as executor:
+            futures = {executor.submit(embed_batch, batch): batch for batch in batches}
+            pbar = tqdm(total=len(batches), desc="Embedding Chunks")
+            for future in as_completed(futures):
+                embs, ids = future.result()
+                if embs is not None:
+                    all_embeddings.extend(embs)
+                    id_mapping.extend(ids)
+                else:
+                    # Single doc fallback on failure
+                    texts, ids = futures[future]
+                    for t, doc_id in zip(texts, ids):
+                        try:
+                            time.sleep(1) # Small delay to prevent rapid 429
+                            emb = self.embeddings.embed_documents([t])
+                            all_embeddings.extend(emb)
+                            id_mapping.append(doc_id)
+                        except Exception as e2:
+                            print(f"  ⚠ Skipped chunk {doc_id}: {e2}")
+                pbar.update(1)
+            pbar.close()
+
+        self.id_mapping = id_mapping
 
         if all_embeddings:
             dimension = len(all_embeddings[0])

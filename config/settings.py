@@ -21,7 +21,7 @@ MAX_EMBEDDING_CHARS = 40000   # ~10k tokens safe limit for text-embedding-004 (m
 MAX_CHUNK_LINES = 300         # Split code blocks larger than this into sub-chunks
 
 # Paths
-INPUT_DIR = os.path.join(BASE_DIR, "input_code", "COM Server", "dbServer")
+INPUT_DIR = os.path.join(BASE_DIR, "input_code")
 RULES_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "rules")
 UML_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "uml")
 
