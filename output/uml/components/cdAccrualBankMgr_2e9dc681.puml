@@ -1,0 +1,130 @@
+@startuml
+participant Caller
+participant "cdAccrualBankMgr.cls"
+participant TrsRaiseError
+participant "dbEnvironment.cdEnvironment"
+database "Database/Config Store"
+participant BusinessRuleService
+participant "ADODB.Connection"
+participant "ADODB.Recordset"
+participant "clsuDBConnectMgr"
+database Database
+participant TrsErrorLogger
+participant System
+participant "utilADOHelper.cuResourceMgr"
+participant "VB6/COM Runtime"
+== Class Lifecycle ==
+System -> "cdAccrualBankMgr.cls": Class_Initialize()
+activate "cdAccrualBankMgr.cls"
+"cdAccrualBankMgr.cls" -> "utilADOHelper.cuResourceMgr": New
+activate "utilADOHelper.cuResourceMgr"
+"utilADOHelper.cuResourceMgr" --> "cdAccrualBankMgr.cls": New instance
+deactivate "utilADOHelper.cuResourceMgr"
+deactivate "cdAccrualBankMgr.cls"
+"VB6/COM Runtime" -> "cdAccrualBankMgr.cls": Class_Terminate()
+activate "cdAccrualBankMgr.cls"
+"cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Set m_ResourceMgr = Nothing
+deactivate "cdAccrualBankMgr.cls"
+== Public Methods ==
+group UpdateEmployeeBanks
+  Caller -> "cdAccrualBankMgr.cls": UpdateEmployeeBanks(v_rsEmployeeBanks, v_rsAuditTrail, v_lngLastModEmpNum)
+  activate "cdAccrualBankMgr.cls"
+  "cdAccrualBankMgr.cls" -> TrsRaiseError: Raise error with message "This method has been moved to cdAccrualBankMgrTrans."
+  activate TrsRaiseError
+  TrsRaiseError --> "cdAccrualBankMgr.cls": Error raised
+  deactivate TrsRaiseError
+  deactivate "cdAccrualBankMgr.cls"
+end
+group GetEmployeeQuarterlyOTBanks
+  Caller -> "cdAccrualBankMgr.cls": GetEmployeeQuarterlyOTBanks(v_lngEmpNum, v_datStartDate)
+  activate "cdAccrualBankMgr.cls"
+  "cdAccrualBankMgr.cls" -> TrsRaiseError: Raise Obsolete Method Error (trErrObsoleteMethod)
+  activate TrsRaiseError
+  TrsRaiseError --> "cdAccrualBankMgr.cls": Error raised
+  deactivate TrsRaiseError
+  "cdAccrualBankMgr.cls" --> Caller: ADODB.Recordset (or error)
+  deactivate "cdAccrualBankMgr.cls"
+end
+group AreFamilyCareBanksActive
+  Caller -> "cdAccrualBankMgr.cls": AreFamilyCareBanksActive()
+  activate "cdAccrualBankMgr.cls"
+  "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Initialize result to False
+  alt No error occurs
+    "cdAccrualBankMgr.cls" -> "dbEnvironment.cdEnvironment": Create dbEnvironment object
+    activate "dbEnvironment.cdEnvironment"
+    "dbEnvironment.cdEnvironment" --> "cdAccrualBankMgr.cls": Object created
+    deactivate "dbEnvironment.cdEnvironment"
+    "cdAccrualBankMgr.cls" -> "dbEnvironment.cdEnvironment": GetSysParmsValue(51, 1)
+    activate "dbEnvironment.cdEnvironment"
+    "dbEnvironment.cdEnvironment" -> "Database/Config Store": Retrieve system parameter 51, 1
+    activate "Database/Config Store"
+    "Database/Config Store" --> "dbEnvironment.cdEnvironment": Parameter value
+    deactivate "Database/Config Store"
+    "dbEnvironment.cdEnvironment" --> "cdAccrualBankMgr.cls": Parameter value
+    deactivate "dbEnvironment.cdEnvironment"
+    "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Convert value to uppercase (UseNewBanks)
+    alt If UseNewBanks is "Y" or "TRUE" or "1"
+      "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Set result to True
+    end
+    "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Release dbEnvironment object
+    "cdAccrualBankMgr.cls" --> Caller: Boolean result
+  else An error occurs
+    "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Release dbEnvironment object
+    "cdAccrualBankMgr.cls" -> TrsRaiseError: TrsRaiseError(module, function, UseNewBanks, ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cdAccrualBankMgr.cls": Error handled
+    deactivate TrsRaiseError
+    "cdAccrualBankMgr.cls" --> Caller: Function exits due to error
+  end
+  deactivate "cdAccrualBankMgr.cls"
+end
+group GetEmployeeBanks
+  Caller -> "cdAccrualBankMgr.cls": GetEmployeeBanks(v_aryEmployees, v_datStartDate)
+  activate "cdAccrualBankMgr.cls"
+  alt v_aryEmployees is an Array
+    "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": BuildInClause for Employee Selection
+  else
+    "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Format single Employee Number
+  end
+  "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Calculate Years and In Clause
+  "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": Call AreFamilyCareBanksActive()
+  activate "cdAccrualBankMgr.cls"
+  "cdAccrualBankMgr.cls" --> "cdAccrualBankMgr.cls": Boolean result
+  deactivate "cdAccrualBankMgr.cls"
+  alt If AreFamilyCareBanksActive is True
+    "cdAccrualBankMgr.cls" -> BusinessRuleService: AreFamilyCareBanksActive
+    activate BusinessRuleService
+    BusinessRuleService --> "cdAccrualBankMgr.cls": Result from BusinessRuleService
+    deactivate BusinessRuleService
+  end
+  "cdAccrualBankMgr.cls" --> Caller: ADODB.Recordset (or other result)
+  deactivate "cdAccrualBankMgr.cls"
+end
+group GetEmployeeVacationBankAudit
+  Caller -> "cdAccrualBankMgr.cls": GetEmployeeVacationBankAudit(v_aryEmployees, v_datStartDate)
+  activate "cdAccrualBankMgr.cls"
+  "cdAccrualBankMgr.cls" -> "ADODB.Connection": New
+  activate "ADODB.Connection"
+  "ADODB.Connection" --> "cdAccrualBankMgr.cls": l_objCN
+  deactivate "ADODB.Connection"
+  "cdAccrualBankMgr.cls" -> "ADODB.Recordset": New
+  activate "ADODB.Recordset"
+  "ADODB.Recordset" --> "cdAccrualBankMgr.cls": l_objRS
+  deactivate "ADODB.Recordset"
+  "cdAccrualBankMgr.cls" -> "clsuDBConnectMgr": New
+  activate "clsuDBConnectMgr"
+  "clsuDBConnectMgr" --> "cdAccrualBankMgr.cls": l_objCM
+  deactivate "clsuDBConnectMgr"
+  "cdAccrualBankMgr.cls" -> "clsuDBConnectMgr": GetConnectionString("SHADOWDIRECT")
+  activate "clsuDBConnectMgr"
+  "clsuDBConnectMgr" --> "cdAccrualBankMgr.cls": Connection String
+  deactivate "clsuDBConnectMgr"
+  "cdAccrualBankMgr.cls" -> "ADODB.Connection": Set CursorLocation adUseClient
+  "cdAccrualBankMgr.cls" -> "ADODB.Connection": Open
+  activate "ADODB.Connection"
+  "ADODB.Connection" --> "cdAccrualBankMgr.cls": Connection Opened
+  deactivate "ADODB.Connection"
+  "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": BuildInClause("EMP_NUM", v_aryEmployees, False)
+  "cdAccrualBankMgr.cls" -> "cdAccrualBankMgr.cls": DateAsEnclosedString(v_datStartDate)
+  "cdAccrualBankMgr.cls" -> "cd
+@enduml

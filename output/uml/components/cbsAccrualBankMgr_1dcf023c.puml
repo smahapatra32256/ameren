@@ -1,0 +1,31 @@
+@startuml
+participant Caller
+participant cbsAccrualBankMgr
+participant dbAccrualBankMgr
+participant dbEmployee
+participant busEmployee
+participant dbRules
+participant ADODB.Recordset
+participant Collection
+participant MDAC25FilterFix
+participant COMPlusRuntime
+database Database
+participant ErrorSystem
+' --- Get Employee Bank Data ---
+Caller -> cbsAccrualBankMgr: GetEmpAccrualBanks(v_aryEmployees, v_datStartDate)
+activate cbsAccrualBankMgr
+cbsAccrualBankMgr -> dbAccrualBankMgr: CreateObject("dbAccrualBankMgr.cdAccrualBankMgr")
+activate dbAccrualBankMgr
+alt Successful execution
+  cbsAccrualBankMgr -> dbAccrualBankMgr: GetEmployeeBanks(v_aryEmployees, v_datStartDate)
+  dbAccrualBankMgr --> cbsAccrualBankMgr: Recordset
+else Error
+  cbsAccrualBankMgr -> ErrorSystem: Raise Error
+end
+deactivate dbAccrualBankMgr
+deactivate cbsAccrualBankMgr
+Caller -> cbsAccrualBankMgr: GetEmpVacationBankAudit(v_aryEmployees, v_datStartDate)
+activate cbsAccrualBankMgr
+cbsAccrualBankMgr -> dbAccrualBankMgr: CreateObject("dbAccrualBankMgr.cdAccrualBankMgr")
+activate dbAcc
+@enduml

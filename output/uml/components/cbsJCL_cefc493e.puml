@@ -1,0 +1,59 @@
+@startuml
+participant Caller
+participant cbsJCL
+participant dbJCL
+participant TrsErrorLogger
+group Start427
+  Caller -> cbsJCL: Start427()
+  activate cbsJCL
+  cbsJCL -> cbsJCL: Initialize Start427 = False
+  alt No error occurred
+    cbsJCL -> dbJCL: CreateObject("dbJCL.cdJCL")
+    activate dbJCL
+    dbJCL --> cbsJCL: Object instance
+    cbsJCL -> dbJCL: Start427()
+    dbJCL --> cbsJCL: Boolean result
+    deactivate dbJCL
+    cbsJCL -> cbsJCL: Assign result to Start427
+    cbsJCL -> cbsJCL: Release lobjDBJCL
+    cbsJCL --> Caller: Boolean result
+  else Error occurred (Start427_EH)
+    cbsJCL -> cbsJCL: Release lobjDBJCL (if instantiated)
+    cbsJCL -> TrsErrorLogger: TrsRaiseError(MODULENAME, "Start427", ...)
+    activate TrsErrorLogger
+    TrsErrorLogger --> cbsJCL: Error logged
+    deactivate TrsErrorLogger
+    cbsJCL --> Caller: False (due to error)
+  end
+  deactivate cbsJCL
+end
+group CheckJCLStatus
+  Caller -> cbsJCL: CheckJCLStatus(vlRequestNumber, vsProgramID)
+  activate cbsJCL
+  cbsJCL -> dbJCL: CreateObject("dbJCL.cdJCL")
+  activate dbJCL
+  alt Successful execution
+    dbJCL --> cbsJCL: cdJCL object instance
+    cbsJCL -> dbJCL: CheckJCLStatus(vlRequestNumber, vsProgramID)
+    dbJCL --> cbsJCL: Result
+    deactivate dbJCL
+    cbsJCL --> Caller: Result
+  end
+  deactivate cbsJCL
+end
+group GetListOfPrinters
+  Caller -> cbsJCL: GetListOfPrinters()
+  activate cbsJCL
+  cbsJCL -> cbsJCL: Set GetListOfPrinters = Nothing
+  alt Normal execution
+    cbsJCL -> dbJCL: CreateObject("dbJCL.cdJCL")
+    activate dbJCL
+    dbJCL --> cbsJCL: dbJCL instance
+    cbsJCL -> dbJCL: GetListOfPrinters()
+    dbJCL --> cbsJCL: AD
+    deactivate dbJCL
+    cbsJCL --> Caller: AD
+  end
+  deactivate cbsJCL
+end
+@enduml

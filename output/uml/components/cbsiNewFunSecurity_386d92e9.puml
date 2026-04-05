@@ -1,0 +1,12 @@
+@startuml
+participant Caller
+participant "cbsiNewFunSecurity.cls"
+Caller -> "cbsiNewFunSecurity.cls": ApplyFunctionalSecurity2(v_bDeveloper, v_lEmpNum, r_bIsAvailable, r_adrsEmployee, r_adrsABF, r_sClientVersionNumber, r_sClientVersionDate, v_sTRISCustomerID, v_sClientMachineID, v_sMCCltVerNum)
+activate "cbsiNewFunSecurity.cls"
+"cbsiNewFunSecurity.cls" --> Caller: Boolean result
+deactivate "cbsiNewFunSecurity.cls"
+Caller -> "cbsiNewFunSecurity.cls": MaintainTRISCustomerInfo2(v_sTRISCustomerID, v_lCustomerNumber, v_sClientMachineID, v_sRemoteServerName, v_sClientVersionNumber)
+activate "cbsiNewFunSecurity.cls"
+"cbsiNewFunSecurity.cls" --> Caller: Boolean
+deactivate "cbsiNewFunSecurity.cls"
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+participant Caller
+participant cbsEmpFMLA
+participant dbEmpFMLA
+participant "TrsRaiseError System"
+Caller -> cbsEmpFMLA: Process_TTR_EMP_FMLA(siOption_Num, strStart_Dt, strEnd_Dt, blnAudit)
+activate cbsEmpFMLA
+cbsEmpFMLA -> dbEmpFMLA: Instantiate cdEmpFMLA object
+activate dbEmpFMLA
+dbEmpFMLA --> cbsEmpFMLA: Object l_objdbEmpFMLA created
+alt On Error GoTo eh
+    cbsEmpFMLA -> dbEmpFMLA: Process_TTR_EMP_FMLA(siOption_Num, strStart_Dt, strEnd_Dt, blnAudit)
+    dbEmpFMLA --> cbsEmpFMLA: Processing complete
+    cbsEmpFMLA -> dbEmpFMLA: Release object l_objdbEmpFMLA
+    deactivate dbEmpFMLA
+    cbsEmpFMLA --> Caller: Sub completed successfully
+else Error occurred
+    cbsEmpFMLA -> dbEmpFMLA: Release object l_objdbEmpFMLA
+    deactivate dbEmpFMLA
+    cbsEmpFMLA -> "TrsRaiseError System": TrsRaiseError("busEmpFMLA.cbsEmpFMLA", "Process_TTR_EMP_FMLA", DescArgsFrom(siOption_Num, strStart_Dt, strEnd_Dt, blnAudit))
+    activate "TrsRaiseError System"
+    "TrsRaiseError System" --> cbsEmpFMLA: Error handled/raised
+    deactivate "TrsRaiseError System"
+    cbsEmpFMLA --> Caller: Sub completed with error
+end
+deactivate cbsEmpFMLA
+@enduml

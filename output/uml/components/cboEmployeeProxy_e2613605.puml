@@ -1,0 +1,30 @@
+@startuml
+participant Caller
+participant "cboEmployeeProxy.cls" as cboEmployeeProxy
+participant "boCommonLib.cboEmployee" as cboEmployee
+participant "COM Runtime"
+participant "TrsRaiseError"
+group RestoreWithState
+  Caller -> cboEmployeeProxy: RestoreWithState(r_rsEmployee, r_rsEmpWorkgroups)
+  activate cboEmployeeProxy
+  alt Successful execution
+    cboEmployeeProxy -> cboEmployee: CreateObject("boCommonLib.cboEmployee")
+    activate cboEmployee
+    cboEmployee --> cboEmployeeProxy: New instance created
+    deactivate cboEmployee
+    cboEmployeeProxy -> cboEmployee: RestoreWithState(r_rsEmployee, r_rsEmpWorkgroups)
+    activate cboEmployee
+    cboEmployee --> cboEmployeeProxy: Operation complete
+    deactivate cboEmployee
+    cboEmployeeProxy -> cboEmployee: Set Nothing
+    cboEmployee --> cboEmployeeProxy: Instance released
+  else Error occurred
+    cboEmployeeProxy -> cboEmployee: Set Nothing (cleanup)
+    cboEmployee --> cboEmployeeProxy: Instance released (if applicable)
+    cboEmployeeProxy -> TrsRaiseError: Raise error "boCommonLib.cboEmployee", "RestoreWithState"
+    activate TrsRaiseError
+    TrsRaiseError --> cboEmployeeProxy: Error handled/propagated
+    deactivate TrsRaiseError
+  end
+  cbo
+@enduml

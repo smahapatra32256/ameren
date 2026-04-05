@@ -1,0 +1,116 @@
+@startuml
+participant Caller
+participant "cdRulesProxy.cls"
+participant "dbRules.cdRules"
+participant "TrsRaiseError"
+participant "COM System"
+== GetRule ==
+Caller -> "cdRulesProxy.cls": GetRule(v_lngRule, v_strSubRule)
+activate "cdRulesProxy.cls"
+alt Normal Execution
+  "cdRulesProxy.cls" -> "dbRules.cdRules": Create instance
+  activate "dbRules.cdRules"
+  "cdRulesProxy.cls" -> "dbRules.cdRules": GetRule(v_lngRule, v_strSubRule)
+  "dbRules.cdRules" --> "cdRulesProxy.cls": ADODB.Recordset
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" --> Caller: ADODB.Recordset
+else Error Occurred
+  "cdRulesProxy.cls" -> "TrsRaiseError": Raise Error "dbRules.cdRules.GetRule"
+  activate "TrsRaiseError"
+  "TrsRaiseError" --> "cdRulesProxy.cls": Error Raised
+  deactivate "TrsRaiseError"
+  "cdRulesProxy.cls" --> Caller: Error
+end
+deactivate "cdRulesProxy.cls"
+== GetRules ==
+Caller -> "cdRulesProxy.cls": GetRules(v_varRules)
+activate "cdRulesProxy.cls"
+alt Successful execution
+  "cdRulesProxy.cls" -> "dbRules.cdRules": CreateObject("dbRules.cdRules")
+  activate "dbRules.cdRules"
+  "dbRules.cdRules" --> "cdRulesProxy.cls": Object created
+  "cdRulesProxy.cls" -> "dbRules.cdRules": GetRules(v_varRules)
+  "dbRules.cdRules" --> "cdRulesProxy.cls": ADODB.Recordset
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" --> Caller: ADODB.Recordset
+else Error during execution
+  "cdRulesProxy.cls" -> "TrsRaiseError": TrsRaiseError("dbRules.cdRules", "GetRules", ...)
+  activate "TrsRaiseError"
+  "TrsRaiseError" --> "cdRulesProxy.cls": Error raised
+  deactivate "TrsRaiseError"
+  "cdRulesProxy.cls" --> Caller: Error
+end
+deactivate "cdRulesProxy.cls"
+== DoesRuleApply ==
+Caller -> "cdRulesProxy.cls": DoesRuleApply(v_lngRule, v_lngDataType, v_strValue)
+activate "cdRulesProxy.cls"
+alt No error occurs
+  "cdRulesProxy.cls" -> "dbRules.cdRules": Instantiate object
+  "cdRulesProxy.cls" -> "dbRules.cdRules": DoesRuleApply(v_lngRule, v_lngDataType, v_strValue)
+  activate "dbRules.cdRules"
+  "dbRules.cdRules" --> "cdRulesProxy.cls": result (Boolean)
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" --> Caller: result (Boolean)
+end
+deactivate "cdRulesProxy.cls"
+== GetRuleLookup ==
+Caller -> "cdRulesProxy.cls": GetRuleLookup(v_lngRule, v_lngDataType, v_strValuePart1)
+activate "cdRulesProxy.cls"
+alt On Error GoTo eh
+  "cdRulesProxy.cls" -> "dbRules.cdRules": CreateObject("dbRules.cdRules")
+  activate "dbRules.cdRules"
+  "dbRules.cdRules" --> "cdRulesProxy.cls": l_objcdRules instance
+  "cdRulesProxy.cls" -> "dbRules.cdRules": GetRuleLookup(v_lngRule, v_lngDataType, v_strValuePart1)
+  "dbRules.cdRules" --> "cdRulesProxy.cls": Rule Lookup Result
+  "cdRulesProxy.cls" -> "cdRulesProxy.cls": Release l_objcdRules
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" --> Caller: Rule Lookup Result
+else Error Occurred
+  "cdRulesProxy.cls" -> "cdRulesProxy.cls": Release l_objcdRules
+  "cdRulesProxy.cls" -> "TrsRaiseError": TrsRaiseError("dbRules.cdRules", "GetRuleLookup", ...)
+  activate "TrsRaiseError"
+  "TrsRaiseError" --> "cdRulesProxy.cls": Error Raised
+  deactivate "TrsRaiseError"
+end
+deactivate "cdRulesProxy.cls"
+== GetRuleReverseLookup ==
+Caller -> "cdRulesProxy.cls": GetRuleReverseLookup(v_lngRule, v_lngDataType, v_strValuePart2)
+activate "cdRulesProxy.cls"
+alt On Error GoTo eh (Success Path)
+  "cdRulesProxy.cls" -> "dbRules.cdRules": CreateObject("dbRules.cdRules")
+  activate "dbRules.cdRules"
+  "cdRulesProxy.cls" -> "dbRules.cdRules": GetRuleReverseLookup(v_lngRule, v_lngDataType, v_strValuePart2)
+  "dbRules.cdRules" --> "cdRulesProxy.cls": Result String
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" --> Caller: Result String
+else Error Path
+  "cdRulesProxy.cls" -> "TrsRaiseError": Raise error for dbRules.cdRules.GetRuleReverseLookup
+  activate "TrsRaiseError"
+  "TrsRaiseError" --> "cdRulesProxy.cls": Error handled
+  deactivate "TrsRaiseError"
+  "cdRulesProxy.cls" --> Caller: Error propagated
+end
+deactivate "cdRulesProxy.cls"
+== GetGroupRecords ==
+Caller -> "cdRulesProxy.cls": GetGroupRecords(v_strGroupName, v_varKeys, r_varKeyArray, r_varColumnArray)
+activate "cdRulesProxy.cls"
+"cdRulesProxy.cls" -> "dbRules.cdRules": CreateObject("dbRules.cdRules")
+activate "dbRules.cdRules"
+"dbRules.cdRules" --> "cdRulesProxy.cls": l_objcdRules instance
+alt Successful execution
+  "cdRulesProxy.cls" -> "dbRules.cdRules": GetGroupRecords(v_strGroupName, v_varKeys, r_varKeyArray, r_varColumnArray)
+  "dbRules.cdRules" --> "cdRulesProxy.cls": ADODB.Recordset
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" --> Caller: ADODB.Recordset
+else Error occurs
+  deactivate "dbRules.cdRules"
+  "cdRulesProxy.cls" -> "TrsRaiseError": Raise Error
+  activate "TrsRaiseError"
+  "TrsRaiseError" --> "cdRulesProxy.cls": Error Handled
+  deactivate "TrsRaiseError"
+end
+deactivate "cdRulesProxy.cls"
+== InvalidateRulesCache ==
+Caller -> "cdRulesProxy.cls": InvalidateRulesCache(v_lngRule, v_lngBusTypeCd, v_strRgValueCd)
+activate
+@enduml

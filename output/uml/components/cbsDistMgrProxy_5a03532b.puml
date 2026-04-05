@@ -1,0 +1,591 @@
+@startuml
+participant Caller
+participant "cbsDistMgrProxy.cls" as Proxy
+participant "busDistributionMgr.cbsDistributionMgr" as BusMgr
+participant "COM Runtime" as COM
+participant "TrsRaiseError" as ErrorHandler
+database "External System/Database" as DB
+group GetDefaultAcct
+  Caller -> Proxy: GetDefaultAcct(v_strExceptionCd, v_strDistDept, v_strBank, v_strOverrideExcCd, v_strAcctDiv)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  alt No Error
+    Proxy -> BusMgr: GetDefaultAcct(v_strExceptionCd, v_strDistDept, v_strBank, v_strOverrideExcCd, v_strAcctDiv)
+    BusMgr --> Proxy: Result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: Result
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group IsDOJMWorkRequest
+  Caller -> Proxy: IsDOJMWorkRequest(v_varDistributionId)
+  activate Proxy
+  Proxy -> COM: Instantiate cbsDistributionMgr
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  alt Successful execution
+    Proxy -> BusMgr: IsDOJMWorkRequest(v_varDistributionId)
+    BusMgr --> Proxy: Boolean result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: Boolean result
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group IsEMPRVJobTaskWG
+  Caller -> Proxy: IsEMPRVJobTaskWG(v_varWorkGroup)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: Create instance
+    activate COM
+    COM --> Proxy: Instance created
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: IsEMPRVJobTaskWG(v_varWorkGroup)
+    BusMgr --> Proxy: result (Boolean)
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: result (Boolean)
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group IsServiceRequest
+  Caller -> Proxy: IsServiceRequest(v_varDistributionId)
+  activate Proxy
+  alt Successful Execution
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: Instance of busDistributionMgr.cbsDistributionMgr
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: IsServiceRequest(v_varDistributionId)
+    BusMgr --> Proxy: Result (Boolean)
+    deactivate BusMgr
+    Proxy -> Proxy: Release l_objcbsDistributionMgr
+    Proxy --> Caller: Result (Boolean)
+  else Error Occurs
+    Proxy -> Proxy: Release l_objcbsDistributionMgr
+    Proxy -> ErrorHandler: Raise Error (busDistributionMgr.cbsDistributionMgr, IsServiceRequest, ...)
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error Handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error/Exception
+  end
+  deactivate Proxy
+end
+group GetAccountDescription
+  Caller -> Proxy: GetAccountDescription(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strDistributionDeptNum)
+  activate Proxy
+  alt Success Path
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: l_objcbsDistributionMgr instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetAccountDescription(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strDistributionDeptNum)
+    BusMgr --> Proxy: Result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: Result
+  else Error Path
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetAccountDescription2
+  Caller -> Proxy: GetAccountDescription2(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strDistributionDeptNum, v_intDescriptionLength)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: Create instance
+    activate COM
+    COM --> Proxy: l_objcbsDistributionMgr instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetAccountDescription2(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strDistributionDeptNum, v_intDescriptionLength)
+    BusMgr --> Proxy: Result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: Result
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetAccountDescriptionJobTask
+  Caller -> Proxy: GetAccountDescriptionJobTask(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strJobTask, v_strEMPRVDBid, v_strDistributionDeptNum)
+  activate Proxy
+  Proxy -> COM: Instantiate
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  alt On Error
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  else Successful execution
+    Proxy -> BusMgr: GetAccountDescriptionJobTask(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strJobTask, v_strEMPRVDBid, v_strDistributionDeptNum)
+    BusMgr --> Proxy: Result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: Result
+  end
+  deactivate Proxy
+end
+group GetAccountDescriptionJobTask2
+  Caller -> Proxy: GetAccountDescriptionJobTask2(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strJobTask, v_strEMPRVDBid, v_strDistributionDeptNum, v_intDescriptionLength)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr as objDistMgr
+  alt Normal execution
+    Proxy -> objDistMgr: GetAccountDescriptionJobTask2(v_objRsPickListDistribution, v_lngWgNum, v_strDistributionId, v_strDistributionType, v_strJobTask, v_strEMPRVDBid, v_strDistributionDeptNum, v_intDescriptionLength)
+    objDistMgr --> Proxy: Result
+    Proxy -> objDistMgr: Release object
+    deactivate objDistMgr
+    Proxy --> Caller: Result
+  else Error occurs
+    Proxy -> objDistMgr: Release object
+    deactivate objDistMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetWGDistributionIDDescriptions
+  Caller -> Proxy: GetWGDistributionIDDescriptions(v_colWgNum)
+  activate Proxy
+  Proxy -> COM: Instantiate
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  alt Successful execution
+    Proxy -> BusMgr: GetWGDistributionIDDescriptions(v_colWgNum)
+    BusMgr --> Proxy: ADODB.Recordset result
+    Proxy -> Proxy: Release busDistributionMgr.cbsDistributionMgr object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs
+    Proxy -> Proxy: Release busDistributionMgr.cbsDistributionMgr object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error raised
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetWGDistributionIDDescriptions2B
+  Caller -> Proxy: GetWGDistributionIDDescriptions2B(v_colWgNum, v_intDescriptionLength)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: l_objcbsDistributionMgr instance
+  deactivate COM
+  activate BusMgr
+  alt Successful execution
+    Proxy -> BusMgr: GetWGDistributionIDDescriptions2B(v_colWgNum, v_intDescriptionLength)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Set l_objcbsDistributionMgr = Nothing
+    destroy BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs (On Error GoTo eh)
+    Proxy -> BusMgr: Set l_objcbsDistributionMgr = Nothing
+    destroy BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error raised
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetWGDistributionIDDescriptions3
+  Caller -> Proxy: GetWGDistributionIDDescriptions3(v_colWgNum, v_intDescriptionLength, v_sCallerMode)
+  activate Proxy
+  alt Success Path
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: Object instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetWGDistributionIDDescriptions3(v_colWgNum, v_intDescriptionLength, v_sCallerMode)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error Path
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDOJMWorkRequestsByRegion
+  Caller -> Proxy: GetDOJMWorkRequestsByRegion(v_strDistrict, v_strHeadquarters)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  alt No Error
+    Proxy -> BusMgr: GetDOJMWorkRequestsByRegion(v_strDistrict, v_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset result
+    Proxy -> BusMgr: Set Nothing (cleanup)
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset result
+  else Error Occurs
+    Proxy -> BusMgr: Set Nothing (cleanup)
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDOJMWorkRequestsByWorkGroup
+  Caller -> Proxy: GetDOJMWorkRequestsByWorkGroup(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Object instance
+  deactivate COM
+  activate BusMgr
+  alt No Error
+    Proxy -> BusMgr: GetDOJMWorkRequestsByWorkGroup(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset result
+  else Error Occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group IsDOJMWorkGroup
+  Caller -> Proxy: IsDOJMWorkGroup(v_lngWgNum)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Object created
+  deactivate COM
+  activate BusMgr
+  alt No Error
+    Proxy -> BusMgr: IsDOJMWorkGroup(v_lngWgNum)
+    BusMgr --> Proxy: Boolean result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: Boolean result
+  else Error Occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionList
+  Caller -> Proxy: GetDistributionList(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Object Instance
+  deactivate COM
+  activate BusMgr
+  Proxy -> BusMgr: GetDistributionList(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate BusMgr
+  BusMgr -> DB: Retrieve Distribution Data
+  activate DB
+  DB --> BusMgr: ADODB.Recordset
+  deactivate DB
+  BusMgr --> Proxy: ADODB.Recordset
+  deactivate BusMgr
+  alt On Error
+    Proxy -> Proxy: Release busDistributionMgr object
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error Handled/Re-raised
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  else Success
+    Proxy -> Proxy: Release busDistributionMgr object
+    Proxy --> Caller: ADODB.Recordset
+  end
+  deactivate Proxy
+end
+group GetDistributionList2
+  Caller -> Proxy: GetDistributionList2(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  alt Success path
+    Proxy -> BusMgr: GetDistributionList2(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset result
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset result
+  else Error path
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionList2B
+  Caller -> Proxy: GetDistributionList2B(v_lngWgNum, v_intDescriptionLength, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Instance created
+  deactivate COM
+  activate BusMgr
+  Proxy -> BusMgr: GetDistributionList2B(v_lngWgNum, v_intDescriptionLength, r_strDistrict, r_strHeadquarters)
+  BusMgr --> Proxy: ADODB.Recordset
+  alt On Error
+    Proxy -> BusMgr: Release object (if created)
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise error "busDistributionMgr.cbsDistributionMgr", "GetDistributionList2B"
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error raised
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  else Success
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  end
+  deactivate Proxy
+end
+group GetDistributionListReverse
+  Caller -> Proxy: GetDistributionListReverse(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: Object instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetDistributionListReverse(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionListReverse2
+  Caller -> Proxy: GetDistributionListReverse2(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: busDistributionMgr.cbsDistributionMgr instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetDistributionListReverse2(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionListReverse2B
+  Caller -> Proxy: GetDistributionListReverse2B(v_lngWgNum, v_intDescriptionLength, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: l_objcbsDistributionMgr instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetDistributionListReverse2B(v_lngWgNum, v_intDescriptionLength, r_strDistrict, r_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset, r_strDistrict, r_strHeadquarters
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset, r_strDistrict, r_strHeadquarters
+  else Error occurred
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise error for busDistributionMgr.cbsDistributionMgr.GetDistributionListReverse2B
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionListDOJM
+  Caller -> Proxy: GetDistributionListDOJM(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+  activate Proxy
+  Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+  activate COM
+  COM --> Proxy: Object instance
+  deactivate COM
+  activate BusMgr
+  alt Successful execution
+    Proxy -> BusMgr: GetDistributionListDOJM(v_lngWgNum, r_strDistrict, r_strHeadquarters)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionListEMPRV
+  Caller -> Proxy: GetDistributionListEMPRV(v_lngWgNum, v_blnReverseJobTasks)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: Instantiate COM object
+    activate COM
+    COM --> Proxy: Object instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetDistributionListEMPRV(v_lngWgNum, v_blnReverseJobTasks)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurred
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionListEMPRV2
+  Caller -> Proxy: GetDistributionListEMPRV2(v_lngWgNum, v_blnReverseJobTasks)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: Object instance
+    deactivate COM
+    activate BusMgr
+    Proxy -> BusMgr: GetDistributionListEMPRV2(v_lngWgNum, v_blnReverseJobTasks)
+    BusMgr --> Proxy: ADODB.Recordset
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurred during processing
+    Proxy -> COM: CreateObject("busDistributionMgr.cbsDistributionMgr")
+    activate COM
+    COM --> Proxy: Object instance (error)
+    deactivate COM
+    Proxy -> BusMgr: Release object
+    deactivate BusMgr
+    Proxy -> ErrorHandler: Raise Error
+    activate ErrorHandler
+    ErrorHandler --> Proxy: Error handled
+    deactivate ErrorHandler
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetDistributionListEMPRV2B
+  Caller -> Proxy: GetDistributionListEMPR
+@enduml

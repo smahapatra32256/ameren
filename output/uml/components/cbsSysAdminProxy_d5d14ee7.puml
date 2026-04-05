@@ -1,0 +1,164 @@
+@startuml
+participant Caller
+participant cbsSysAdminProxy
+participant "COM Runtime" as COMRuntime
+participant busSysAdmin
+participant TrsRaiseError
+== ProcessSysAdminRequest ==
+Caller -> cbsSysAdminProxy: ProcessSysAdminRequest(vsRequest, vlUserNumber, radrsMulti, rlRecordsAffected, rsErrorString, vsUserID)
+activate cbsSysAdminProxy
+alt If radrsMulti is not empty
+  cbsSysAdminProxy -> cbsSysAdminProxy: Assign radrsMulti to l_radrsMulti
+end
+cbsSysAdminProxy -> COMRuntime: CreateObject("busSysAdmin.cbsSysAdmin")
+activate COMRuntime
+COMRuntime --> cbsSysAdminProxy: Object instance created
+deactivate COMRuntime
+' The snippet for ProcessSysAdminRequest ends here, assuming further calls to busSysAdmin and a return.
+' Adding a generic return and deactivate for completeness.
+cbsSysAdminProxy --> Caller: Result
+deactivate cbsSysAdminProxy
+== ProcessSysAdminSELECT ==
+Caller -> cbsSysAdminProxy: ProcessSysAdminSELECT(vsRequest, vlUserNumber, radrsMulti, rsErrorString, vsUserID)
+activate cbsSysAdminProxy
+alt If radrsMulti is not empty
+  cbsSysAdminProxy -> cbsSysAdminProxy: Copy radrsMulti to l_radrsMulti
+end
+cbsSysAdminProxy -> busSysAdmin: Instantiate cbsSysAdmin object
+activate busSysAdmin
+alt Normal execution path
+  cbsSysAdminProxy -> busSysAdmin: ProcessSysAdminSELECT(vsRequest, vlUserNumber, l_radrsMulti, rsErrorString, vsUserID)
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: Return result and updated l_radrsMulti
+  deactivate busSysAdmin
+  cbsSysAdminProxy -> busSysAdmin: Release cbsSysAdmin object
+  deactivate busSysAdmin
+  cbsSysAdminProxy -> cbsSysAdminProxy: Update ByRef radrsMulti with l_radrsMulti
+  cbsSysAdminProxy --> Caller: Result
+end
+deactivate cbsSysAdminProxy
+== ProcessSysAdminINSUPDDEL ==
+Caller -> cbsSysAdminProxy: ProcessSysAdminINSUPDDEL(vsRequest, vlUserNumber, rsErrorString, vsUserID)
+activate cbsSysAdminProxy
+cbsSysAdminProxy -> busSysAdmin: CreateObject("busSysAdmin.cbsSysAdmin")
+activate busSysAdmin
+busSysAdmin --> cbsSysAdminProxy: Object reference
+deactivate busSysAdmin
+alt Successful execution
+  cbsSysAdminProxy -> busSysAdmin: ProcessSysAdminINSUPDDEL(vsRequest, vlUserNumber, rsErrorString, vsUserID)
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: Result (Long)
+  deactivate busSysAdmin
+  cbsSysAdminProxy --> Caller: Result (Long)
+else Error occurs
+  cbsSysAdminProxy -> TrsRaiseError: Raise error "busSysAdmin.cbsSysAdmin", "ProcessSysAdminINSUPDDEL", ...
+  activate TrsRaiseError
+  TrsRaiseError --> cbsSysAdminProxy: Error handled/propagated
+  deactivate TrsRaiseError
+  cbsSysAdminProxy --> Caller: Error (implicit return)
+end
+deactivate cbsSysAdminProxy
+== GetAllCatalogInformation ==
+Caller -> cbsSysAdminProxy: GetAllCatalogInformation(radrsTables, radrsColumns, radrsIndices, radrsKeys, vlUserNumber, vsUserID)
+activate cbsSysAdminProxy
+' Instantiation of busSysAdmin.cbsSysAdmin is implied before the call
+cbsSysAdminProxy -> busSysAdmin: Instantiate busSysAdmin.cbsSysAdmin
+activate busSysAdmin
+busSysAdmin --> cbsSysAdminProxy: Object reference
+alt Successful execution
+  cbsSysAdminProxy -> busSysAdmin: GetAllCatalogInformation(radrsTables, radrsColumns, radrsIndices, radrsKeys, vlUserNumber, vsUserID)
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: Catalog information returned via ByRef parameters
+  deactivate busSysAdmin
+end
+cbsSysAdminProxy -> busSysAdmin: Release object
+deactivate busSysAdmin
+cbsSysAdminProxy --> Caller: Catalog information
+deactivate cbsSysAdminProxy
+== GetTableCatalogInformation ==
+Caller -> cbsSysAdminProxy: GetTableCatalogInformation()
+activate cbsSysAdminProxy
+alt Successful execution
+  cbsSysAdminProxy -> busSysAdmin: Instantiate busSysAdmin.cbsSysAdmin
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: l_objcbsSysAdmin object
+  deactivate busSysAdmin
+  cbsSysAdminProxy -> busSysAdmin: GetTableCatalogInformation()
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: ADODB.Recordset
+  deactivate busSysAdmin
+  cbsSysAdminProxy --> Caller: ADODB.Recordset
+else Error handler 'eh' triggered
+  cbsSysAdminProxy -> TrsRaiseError: TrsRaiseError("busSysAdmin.cbsSysAdmin", "GetTableCatalogInformation", ...)
+  activate TrsRaiseError
+  TrsRaiseError --> cbsSysAdminProxy: Error handled
+  deactivate TrsRaiseError
+  cbsSysAdminProxy --> Caller: Error
+end
+deactivate cbsSysAdminProxy
+== GetColumnCatalogInformation ==
+Caller -> cbsSysAdminProxy: GetColumnCatalogInformation()
+activate cbsSysAdminProxy
+cbsSysAdminProxy -> busSysAdmin: Instantiate l_objcbsSysAdmin
+activate busSysAdmin
+busSysAdmin --> cbsSysAdminProxy: Instance created
+deactivate busSysAdmin
+alt Success Path
+  cbsSysAdminProxy -> busSysAdmin: GetColumnCatalogInformation()
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: ADODB.Recordset
+  deactivate busSysAdmin
+  cbsSysAdminProxy --> Caller: ADODB.Recordset
+else Error Path (On Error GoTo eh)
+  cbsSysAdminProxy -> TrsRaiseError: Raise Error "busSysAdmin.cbsSysAdmin", "GetColumnCatalogInformation"
+  activate TrsRaiseError
+  TrsRaiseError --> cbsSysAdminProxy: Error handled
+  deactivate TrsRaiseError
+  cbsSysAdminProxy --> Caller: Error/Nothing
+end
+deactivate cbsSysAdminProxy
+== GetIndexCatalogInformation ==
+Caller -> cbsSysAdminProxy: GetIndexCatalogInformation()
+activate cbsSysAdminProxy
+alt Success path
+  cbsSysAdminProxy -> busSysAdmin: CreateObject("busSysAdmin.cbsSysAdmin")
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: Object created
+  deactivate busSysAdmin
+  cbsSysAdminProxy -> busSysAdmin: GetIndexCatalogInformation()
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: ADODB.Recordset
+  deactivate busSysAdmin
+  cbsSysAdminProxy --> Caller: ADODB.Recordset
+else Error path
+  cbsSysAdminProxy -> TrsRaiseError: Raise error
+  activate TrsRaiseError
+  TrsRaiseError --> cbsSysAdminProxy: Error handled
+  deactivate TrsRaiseError
+  cbsSysAdminProxy --> Caller: Error
+end
+deactivate cbsSysAdminProxy
+== GetIndexKeysCatalogInformation ==
+Caller -> cbsSysAdminProxy: GetIndexKeysCatalogInformation()
+activate cbsSysAdminProxy
+cbsSysAdminProxy -> busSysAdmin: Create instance
+activate busSysAdmin
+busSysAdmin --> cbsSysAdminProxy: Instance created
+deactivate busSysAdmin
+alt Successful execution
+  cbsSysAdminProxy -> busSysAdmin: GetIndexKeysCatalogInformation()
+  activate busSysAdmin
+  busSysAdmin --> cbsSysAdminProxy: ADODB.Recordset
+  deactivate busSysAdmin
+  cbsSysAdminProxy -> cbsSysAdminProxy: Release object reference
+  cbsSysAdminProxy --> Caller: ADODB.Recordset
+else Error occurred
+  cbsSysAdminProxy -> cbsSysAdminProxy: Release object reference
+  cbsSysAdminProxy -> TrsRaiseError: Raise error
+  activate TrsRaiseError
+  TrsRaiseError --> cbsSysAdminProxy: Error propagated
+  deactivate TrsRaiseError
+  cbsSysAdminProxy --> Caller: Error
+end
+deactivate cbsSysAdminProxy
+@enduml

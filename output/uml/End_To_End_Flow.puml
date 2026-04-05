@@ -1,0 +1,1353 @@
+@startuml
+title End To End File Flow
+left to right direction
+skinparam componentStyle rectangle
+component "ADO" as ADO
+component "AMBIG::BuildWhereClause" as AMBIG__BuildWhereClause
+component "AMBIG::CanBeScheduledOnOffDay" as AMBIG__CanBeScheduledOnOffDay
+component "AMBIG::CompanyCode" as AMBIG__CompanyCode
+component "AMBIG::DateAsEnclosedString" as AMBIG__DateAsEnclosedString
+component "AMBIG::DetermineTradeExceptionCode" as AMBIG__DetermineTradeExceptionCode
+component "AMBIG::DoesRuleApply" as AMBIG__DoesRuleApply
+component "AMBIG::EmployeeUnion" as AMBIG__EmployeeUnion
+component "AMBIG::ExecutiveContractIndicatorForUnion" as AMBIG__ExecutiveContractIndicatorForUnion
+component "AMBIG::GetDemandLineAssignments" as AMBIG__GetDemandLineAssignments
+component "AMBIG::GetDemandLineSchedules" as AMBIG__GetDemandLineSchedules
+component "AMBIG::GetEmpWorkgroups" as AMBIG__GetEmpWorkgroups
+component "AMBIG::GetEmployeeSchedules" as AMBIG__GetEmployeeSchedules
+component "AMBIG::GetEmployeeTrades" as AMBIG__GetEmployeeTrades
+component "AMBIG::GetEmployees" as AMBIG__GetEmployees
+component "AMBIG::GetExistPersonalSched" as AMBIG__GetExistPersonalSched
+component "AMBIG::GetJobDesc" as AMBIG__GetJobDesc
+component "AMBIG::GetOtherPayEntries" as AMBIG__GetOtherPayEntries
+component "AMBIG::GetRecord" as AMBIG__GetRecord
+component "AMBIG::GetRotationSchedDetail" as AMBIG__GetRotationSchedDetail
+component "AMBIG::GetRotationSchedHeader" as AMBIG__GetRotationSchedHeader
+component "AMBIG::GetScheduleChangePayments" as AMBIG__GetScheduleChangePayments
+component "AMBIG::GetScheduledExceptionShifts" as AMBIG__GetScheduledExceptionShifts
+component "AMBIG::GetTimecardEntries" as AMBIG__GetTimecardEntries
+component "AMBIG::GetWorkGroupAssignments" as AMBIG__GetWorkGroupAssignments
+component "AMBIG::GetWorkGroupLineAssignments" as AMBIG__GetWorkGroupLineAssignments
+component "AMBIG::GetWorkGroupLineBaseSched" as AMBIG__GetWorkGroupLineBaseSched
+component "AMBIG::GetWorkGroupLineTrades" as AMBIG__GetWorkGroupLineTrades
+component "AMBIG::GroupSupportsLoadRecord" as AMBIG__GroupSupportsLoadRecord
+component "AMBIG::IsAmerenCIPS" as AMBIG__IsAmerenCIPS
+component "AMBIG::IsAmerenCIPSBenefitParticipant" as AMBIG__IsAmerenCIPSBenefitParticipant
+component "AMBIG::IsCoffeenOperations" as AMBIG__IsCoffeenOperations
+component "AMBIG::IsComponentCode" as AMBIG__IsComponentCode
+component "AMBIG::IsDOJM" as AMBIG__IsDOJM
+component "AMBIG::IsDateValid" as AMBIG__IsDateValid
+component "AMBIG::IsLazyInitialized" as AMBIG__IsLazyInitialized
+component "AMBIG::IsNonWorkTime" as AMBIG__IsNonWorkTime
+component "AMBIG::IsOverrideExceptionCode" as AMBIG__IsOverrideExceptionCode
+component "AMBIG::IsOverrideThatAllowsOverlap" as AMBIG__IsOverrideThatAllowsOverlap
+component "AMBIG::IsScheduledOvertime" as AMBIG__IsScheduledOvertime
+component "AMBIG::IsSpecialOverrideCode" as AMBIG__IsSpecialOverrideCode
+component "AMBIG::IsStringInList" as AMBIG__IsStringInList
+component "AMBIG::IsSubstationOrTransmissionEmployee" as AMBIG__IsSubstationOrTransmissionEmployee
+component "AMBIG::IsVacationReliefCode" as AMBIG__IsVacationReliefCode
+component "AMBIG::IsValidExceptionCodeFor" as AMBIG__IsValidExceptionCodeFor
+component "AMBIG::OneRowForEachKey" as AMBIG__OneRowForEachKey
+component "AMBIG::PayProcessedIndicator" as AMBIG__PayProcessedIndicator
+component "AMBIG::ProcessExceptions" as AMBIG__ProcessExceptions
+component "AMBIG::RecordsExist" as AMBIG__RecordsExist
+component "AMBIG::SinqleQuotedString" as AMBIG__SinqleQuotedString
+component "AMBIG::dbFormat" as AMBIG__dbFormat
+component "Abs" as Abs
+component "Acmd" as Acmd
+component "App" as App
+component "BusScheduleDataManager" as BusScheduleDataManager
+component "CExRecordset" as CExRecordset
+component "CheckForValidString" as CheckForValidString
+component "Chr" as Chr
+component "CodeTableDBMgr" as CodeTableDBMgr
+component "CodeTableDataManager" as CodeTableDataManager
+component "CollectionHelper" as CollectionHelper
+component "CreateObject" as CreateObject
+component "DateAdd" as DateAdd
+component "DateDiff" as DateDiff
+component "DateTimeFrom" as DateTimeFrom
+component "DescArgsFrom" as DescArgsFrom
+component "Employee" as Employee
+component "FormatBRV" as FormatBRV
+component "GetBSTimecard" as GetBSTimecard
+component "GetBusDepartment" as GetBusDepartment
+component "GetBusDepartmentManager" as GetBusDepartmentManager
+component "GetBusExceptionCodeManager" as GetBusExceptionCodeManager
+component "GetDepartmentManager" as GetDepartmentManager
+component "GetEffComponentBusManager" as GetEffComponentBusManager
+component "GetEffComponentDataManager" as GetEffComponentDataManager
+component "GetExceptionCodeManager" as GetExceptionCodeManager
+component "GetJobManager" as GetJobManager
+component "GetObjectContext" as GetObjectContext
+component "GetUnionManager" as GetUnionManager
+component "IIf" as IIf
+component "IsDate" as IsDate
+component "IsEmpty" as IsEmpty
+component "IsTimeBetween" as IsTimeBetween
+component "Join" as Join
+component "LongAppErr" as LongAppErr
+component "METHDBA" as METHDBA
+component "Mid" as Mid
+component "MidnightDate" as MidnightDate
+component "NewExecuteSQLWithConnection" as NewExecuteSQLWithConnection
+component "Not" as Not
+component "Now" as Now
+component "OutputStream" as OutputStream
+component "PadLeft" as PadLeft
+component "RegCloseKey" as RegCloseKey
+component "RegQueryInfoKey" as RegQueryInfoKey
+component "Right" as Right
+component "SESSION" as SESSION
+component "SWbemLocator" as SWbemLocator
+component "SWbemServices" as SWbemServices
+component "SYSADM" as SYSADM
+component "Schedule" as Schedule
+component "Space" as Space
+component "Start" as Start
+component "Time" as Time
+component "TimePeriodsIntersect" as TimePeriodsIntersect
+component "TimePeriodsIntersect2" as TimePeriodsIntersect2
+component "TimePeriodsSubset" as TimePeriodsSubset
+component "Timecard" as Timecard
+component "TrsGetErrDescription" as TrsGetErrDescription
+component "UniqueCollection" as UniqueCollection
+component "aryError" as aryError
+component "busEnvTrans" as busEnvTrans
+component "cboEmployee" as cboEmployee
+component "cboEmployeeProxy" as cboEmployeeProxy
+component "cboOtherPay" as cboOtherPay
+component "cboOtherPayEntry" as cboOtherPayEntry
+component "cboSchedule" as cboSchedule
+component "cboScheduledShift" as cboScheduledShift
+component "cboTimecard" as cboTimecard
+component "cboTimecardEntry" as cboTimecardEntry
+component "cbsAccrualBankMgr" as cbsAccrualBankMgr
+component "cbsBuiltDataScope" as cbsBuiltDataScope
+component "cbsBuiltDataScopeTrans" as cbsBuiltDataScopeTrans
+component "cbsCLIENTINFO" as cbsCLIENTINFO
+component "cbsCallLog" as cbsCallLog
+component "cbsCascade" as cbsCascade
+component "cbsClientRelease" as cbsClientRelease
+component "cbsCodeTables" as cbsCodeTables
+component "cbsCodeTablesProxy" as cbsCodeTablesProxy
+component "cbsCodeTablesTrans" as cbsCodeTablesTrans
+component "cbsCodeTablesTransProxy" as cbsCodeTablesTransProxy
+component "cbsColPdProxy" as cbsColPdProxy
+component "cbsCollectionPeriod" as cbsCollectionPeriod
+component "cbsComment" as cbsComment
+component "cbsCommentTran" as cbsCommentTran
+component "cbsDataScope" as cbsDataScope
+component "cbsDataScopeTrans" as cbsDataScopeTrans
+component "cbsDepartment" as cbsDepartment
+component "cbsDepartmentProxy" as cbsDepartmentProxy
+component "cbsDistMgrProxy" as cbsDistMgrProxy
+component "cbsDistributionMgr" as cbsDistributionMgr
+component "cbsEAM" as cbsEAM
+component "cbsEAMNotify" as cbsEAMNotify
+component "cbsEAMNotifyTrans" as cbsEAMNotifyTrans
+component "cbsEAMTrans" as cbsEAMTrans
+component "cbsETimeCapture" as cbsETimeCapture
+component "cbsETimeCaptureTrans" as cbsETimeCaptureTrans
+component "cbsEmpFMLA" as cbsEmpFMLA
+component "cbsEmployee" as cbsEmployee
+component "cbsEmployeeProxy" as cbsEmployeeProxy
+component "cbsEmployeeTrans" as cbsEmployeeTrans
+component "cbsEmployeeTransProxy" as cbsEmployeeTransProxy
+component "cbsEnvironment" as cbsEnvironment
+component "cbsEnvironmentTrans" as cbsEnvironmentTrans
+component "cbsEnvironmentTrans2" as cbsEnvironmentTrans2
+component "cbsFunSecurity" as cbsFunSecurity
+component "cbsJCL" as cbsJCL
+component "cbsJCLTrans" as cbsJCLTrans
+component "cbsLevelMaintenance" as cbsLevelMaintenance
+component "cbsLevelMaintenanceTrans" as cbsLevelMaintenanceTrans
+component "cbsMissingTime" as cbsMissingTime
+component "cbsOTBanks" as cbsOTBanks
+component "cbsOTBanksTrans" as cbsOTBanksTrans
+component "cbsOTCanvass" as cbsOTCanvass
+component "cbsOTCanvassTrans" as cbsOTCanvassTrans
+component "cbsOTGroup" as cbsOTGroup
+component "cbsOTGroupTrans" as cbsOTGroupTrans
+component "cbsOTTemplate" as cbsOTTemplate
+component "cbsOTTemplateTrans" as cbsOTTemplateTrans
+component "cbsOTTimecard" as cbsOTTimecard
+component "cbsOvertimeEqualizer" as cbsOvertimeEqualizer
+component "cbsRequestFirstAppr" as cbsRequestFirstAppr
+component "cbsRequestFirstApprTran" as cbsRequestFirstApprTran
+component "cbsRotProxy" as cbsRotProxy
+component "cbsRotTransProxy" as cbsRotTransProxy
+component "cbsRules" as cbsRules
+component "cbsSchedChgPay" as cbsSchedChgPay
+component "cbsSchedCodeMaint" as cbsSchedCodeMaint
+component "cbsSchedCodeMaintTran" as cbsSchedCodeMaintTran
+component "cbsSchedDemand" as cbsSchedDemand
+component "cbsSchedDemandTrans" as cbsSchedDemandTrans
+component "cbsSchedException" as cbsSchedException
+component "cbsSchedExceptionTrans" as cbsSchedExceptionTrans
+component "cbsSchedPersonal" as cbsSchedPersonal
+component "cbsSchedPersonalTrans" as cbsSchedPersonalTrans
+component "cbsSchedRotation" as cbsSchedRotation
+component "cbsSchedRotationTrans" as cbsSchedRotationTrans
+component "cbsSchedTrade" as cbsSchedTrade
+component "cbsSchedTradeTrans" as cbsSchedTradeTrans
+component "cbsSchedule" as cbsSchedule
+component "cbsScheduleProxy" as cbsScheduleProxy
+component "cbsSysAdmin" as cbsSysAdmin
+component "cbsSysAdminProxy" as cbsSysAdminProxy
+component "cbsTimecard" as cbsTimecard
+component "cbsTimekeeper" as cbsTimekeeper
+component "cbsWorkGroup" as cbsWorkGroup
+component "cbsWorkGroupTrans" as cbsWorkGroupTrans
+component "cbsWorkGrpProxy" as cbsWorkGrpProxy
+component "cbsWorkGrpTransProxy" as cbsWorkGrpTransProxy
+component "cdAccrualBankMgr" as cdAccrualBankMgr
+component "cdAccrualBankMgrTrans" as cdAccrualBankMgrTrans
+component "cdAdjustments" as cdAdjustments
+component "cdBuiltDataScope" as cdBuiltDataScope
+component "cdCallLog" as cdCallLog
+component "cdCascade" as cdCascade
+component "cdCodeTables" as cdCodeTables
+component "cdCodeTablesProxy" as cdCodeTablesProxy
+component "cdCodeTablesTrans" as cdCodeTablesTrans
+component "cdCodeTablesTransProxy" as cdCodeTablesTransProxy
+component "cdColPdProxy" as cdColPdProxy
+component "cdCollectionPeriod" as cdCollectionPeriod
+component "cdComment" as cdComment
+component "cdCommentTrans" as cdCommentTrans
+component "cdDataScope" as cdDataScope
+component "cdDepartment" as cdDepartment
+component "cdDepartmentProxy" as cdDepartmentProxy
+component "cdDistributionMgr" as cdDistributionMgr
+component "cdEAM" as cdEAM
+component "cdEAMTrans" as cdEAMTrans
+component "cdETimeCapture" as cdETimeCapture
+component "cdETimeCaptureTrans" as cdETimeCaptureTrans
+component "cdEffectiveDateRules" as cdEffectiveDateRules
+component "cdEffectiveDateRulesProxy" as cdEffectiveDateRulesProxy
+component "cdEmpFMLA" as cdEmpFMLA
+component "cdEmployee" as cdEmployee
+component "cdEmployeeTrans" as cdEmployeeTrans
+component "cdEnvironment" as cdEnvironment
+component "cdEnvironmentTrans" as cdEnvironmentTrans
+component "cdEnvironmentTrans2" as cdEnvironmentTrans2
+component "cdJCL" as cdJCL
+component "cdLevelMaintenance" as cdLevelMaintenance
+component "cdMessageDispatcher" as cdMessageDispatcher
+component "cdMissingTime" as cdMissingTime
+component "cdOTBanks" as cdOTBanks
+component "cdOTCanvass" as cdOTCanvass
+component "cdOTGroup" as cdOTGroup
+component "cdOvertimeEqualizer" as cdOvertimeEqualizer
+component "cdPeopleSoft" as cdPeopleSoft
+component "cdRequestFirstAppr" as cdRequestFirstAppr
+component "cdRules" as cdRules
+component "cdRulesProxy" as cdRulesProxy
+component "cdSchedChgPay" as cdSchedChgPay
+component "cdSchedChgPayTrans" as cdSchedChgPayTrans
+component "cdSchedCodeMaint" as cdSchedCodeMaint
+component "cdSchedDemand" as cdSchedDemand
+component "cdSchedDemandTrans" as cdSchedDemandTrans
+component "cdSchedException" as cdSchedException
+component "cdSchedPersonal" as cdSchedPersonal
+component "cdSchedRotation" as cdSchedRotation
+component "cdSchedTrade" as cdSchedTrade
+component "cdSchedule" as cdSchedule
+component "cdTimeCard" as cdTimeCard
+component "cdWorkGroup" as cdWorkGroup
+component "cdWorkGroupTrans" as cdWorkGroupTrans
+component "cdWorkGroupTransProxy" as cdWorkGroupTransProxy
+component "cdWorkGrpProxy" as cdWorkGrpProxy
+component "cm" as cm
+component "cn" as cn
+component "comint4" as comint4
+component "cuADO" as cuADO
+component "cuADOHelper" as cuADOHelper
+component "cuADOHelperTrans" as cuADOHelperTrans
+component "cuClientInfo" as cuClientInfo
+component "cuContainer" as cuContainer
+component "cuDBDataServices" as cuDBDataServices
+component "cuDBDataServicesNonTran" as cuDBDataServicesNonTran
+component "cuLockManager" as cuLockManager
+component "cuRecordCache" as cuRecordCache
+component "cuRegistryAccess" as cuRegistryAccess
+component "cuResourceMgr" as cuResourceMgr
+component "cuSPMCache" as cuSPMCache
+component "cuSPMCacheProxy" as cuSPMCacheProxy
+component "cuSQLBuilder" as cuSQLBuilder
+component "cuServerInfo" as cuServerInfo
+component "datahub" as datahub
+component "db" as db
+component "dbEmployee" as dbEmployee
+component "dbEnv" as dbEnv
+component "dbEnvTrans" as dbEnvTrans
+component "dbSaveTimecard" as dbSaveTimecard
+component "dbTimeCard" as dbTimeCard
+component "dbWorkGroup" as dbWorkGroup
+component "dbWorkgroup" as dbWorkgroup
+component "job" as job
+component "l" as l
+component "lFileFSO" as lFileFSO
+component "l_CodeTables" as l_CodeTables
+component "l_ContainerLib" as l_ContainerLib
+component "l_GetDOJMDistrictAndHeadquarters" as l_GetDOJMDistrictAndHeadquarters
+component "l_aryEmpHoursBeforeTrade" as l_aryEmpHoursBeforeTrade
+component "l_boCommonLib" as l_boCommonLib
+component "l_bsSchedule" as l_bsSchedule
+component "l_busSchedRotation" as l_busSchedRotation
+component "l_cbsCascade" as l_cbsCascade
+component "l_cbsEmployee" as l_cbsEmployee
+component "l_cbsSchedChgPay" as l_cbsSchedChgPay
+component "l_cbsSchedule" as l_cbsSchedule
+component "l_cdCallLog" as l_cdCallLog
+component "l_cdCascade" as l_cdCascade
+component "l_cdCodeTables" as l_cdCodeTables
+component "l_cdEmployee" as l_cdEmployee
+component "l_cdSchedDemand" as l_cdSchedDemand
+component "l_cdSchedTrade" as l_cdSchedTrade
+component "l_cdSchedule" as l_cdSchedule
+component "l_cdTimecard" as l_cdTimecard
+component "l_cdWorkgroup" as l_cdWorkgroup
+component "l_cexField" as l_cexField
+component "l_dbAccrual" as l_dbAccrual
+component "l_dbCodeTables" as l_dbCodeTables
+component "l_dbDefaultEndDate" as l_dbDefaultEndDate
+component "l_dbEffectiveDateRules" as l_dbEffectiveDateRules
+component "l_dbEmployee" as l_dbEmployee
+component "l_dbOTEqualizer" as l_dbOTEqualizer
+component "l_dbOvertimeEqualizer" as l_dbOvertimeEqualizer
+component "l_dbRules" as l_dbRules
+component "l_dbSchedChgPay" as l_dbSchedChgPay
+component "l_dbSchedPersonal" as l_dbSchedPersonal
+component "l_dbSchedRotation" as l_dbSchedRotation
+component "l_dbSchedule" as l_dbSchedule
+component "l_dbTimecard" as l_dbTimecard
+component "l_getDistributionList" as l_getDistributionList
+component "l_obj" as l_obj
+component "l_objAccrualBankMgr" as l_objAccrualBankMgr
+component "l_objAdj" as l_objAdj
+component "l_objAdjustments" as l_objAdjustments
+component "l_objBUSCodeTables" as l_objBUSCodeTables
+component "l_objCM" as l_objCM
+component "l_objCMD" as l_objCMD
+component "l_objCN" as l_objCN
+component "l_objCallInfo" as l_objCallInfo
+component "l_objCodeTable" as l_objCodeTable
+component "l_objCodeTables" as l_objCodeTables
+component "l_objCollPeriod" as l_objCollPeriod
+component "l_objCollectionPeriod" as l_objCollectionPeriod
+component "l_objComment" as l_objComment
+component "l_objCommonLib" as l_objCommonLib
+component "l_objDBConnectMgr" as l_objDBConnectMgr
+component "l_objDBEmployee" as l_objDBEmployee
+component "l_objDBSchDmd" as l_objDBSchDmd
+component "l_objDBSchDmdTrans" as l_objDBSchDmdTrans
+component "l_objDBWorkGroup" as l_objDBWorkGroup
+component "l_objDOJMDistrict" as l_objDOJMDistrict
+component "l_objDepartment" as l_objDepartment
+component "l_objDept" as l_objDept
+component "l_objDistributionMgr" as l_objDistributionMgr
+component "l_objEMPRVJobTaskWG" as l_objEMPRVJobTaskWG
+component "l_objEmployee" as l_objEmployee
+component "l_objGetAccountDescription" as l_objGetAccountDescription
+component "l_objGetActualTimeEntries" as l_objGetActualTimeEntries
+component "l_objGetDOJMWorkRequestsByRegion" as l_objGetDOJMWorkRequestsByRegion
+component "l_objGetDistributionList" as l_objGetDistributionList
+component "l_objGetJobTaskDistributionidDesc" as l_objGetJobTaskDistributionidDesc
+component "l_objGetJobTaskList" as l_objGetJobTaskList
+component "l_objGetOverExccdDescription" as l_objGetOverExccdDescription
+component "l_objGetWGDistributionIDDescriptions" as l_objGetWGDistributionIDDescriptions
+component "l_objJobNumber" as l_objJobNumber
+component "l_objPrevPayrollCd" as l_objPrevPayrollCd
+component "l_objRSEmployee" as l_objRSEmployee
+component "l_objReasonMgr" as l_objReasonMgr
+component "l_objSQLBuilder" as l_objSQLBuilder
+component "l_objSchDmd" as l_objSchDmd
+component "l_objSchedChgPay" as l_objSchedChgPay
+component "l_objSchedCode" as l_objSchedCode
+component "l_objSchedException" as l_objSchedException
+component "l_objSchedule" as l_objSchedule
+component "l_objScheduleCodes" as l_objScheduleCodes
+component "l_objScheduleDetail" as l_objScheduleDetail
+component "l_objTimeEntry" as l_objTimeEntry
+component "l_objTimecard" as l_objTimecard
+component "l_objUtility" as l_objUtility
+component "l_objValidate" as l_objValidate
+component "l_objWkGp" as l_objWkGp
+component "l_objWorkGroup" as l_objWorkGroup
+component "l_objWorkgroup" as l_objWorkgroup
+component "l_objbusEmployee" as l_objbusEmployee
+component "l_objcboEmployee" as l_objcboEmployee
+component "l_objcbsCodeTables" as l_objcbsCodeTables
+component "l_objcbsCodeTablesTrans" as l_objcbsCodeTablesTrans
+component "l_objcbsCollectionPeriod" as l_objcbsCollectionPeriod
+component "l_objcbsDepartment" as l_objcbsDepartment
+component "l_objcbsDistributionMgr" as l_objcbsDistributionMgr
+component "l_objcbsEmployee" as l_objcbsEmployee
+component "l_objcbsEmployeeTrans" as l_objcbsEmployeeTrans
+component "l_objcbsSchedRotation" as l_objcbsSchedRotation
+component "l_objcbsSchedRotationTrans" as l_objcbsSchedRotationTrans
+component "l_objcbsSchedule" as l_objcbsSchedule
+component "l_objcbsSysAdmin" as l_objcbsSysAdmin
+component "l_objcbsWorkGroup" as l_objcbsWorkGroup
+component "l_objcbsWorkGroupTrans" as l_objcbsWorkGroupTrans
+component "l_objcdCodeTables" as l_objcdCodeTables
+component "l_objcdCodeTablesTrans" as l_objcdCodeTablesTrans
+component "l_objcdCollectionPeriod" as l_objcdCollectionPeriod
+component "l_objcdDepartment" as l_objcdDepartment
+component "l_objcdEffectiveDateRules" as l_objcdEffectiveDateRules
+component "l_objcdRules" as l_objcdRules
+component "l_objcdTimecard" as l_objcdTimecard
+component "l_objcdWorkGroup" as l_objcdWorkGroup
+component "l_objcdWorkGroupTrans" as l_objcdWorkGroupTrans
+component "l_objcuSPMCache" as l_objcuSPMCache
+component "l_objdbAccrualBankMgr" as l_objdbAccrualBankMgr
+component "l_objdbCollectionPeriod" as l_objdbCollectionPeriod
+component "l_objdbDepartment" as l_objdbDepartment
+component "l_objdbEmployee" as l_objdbEmployee
+component "l_objdbOTEqualizer" as l_objdbOTEqualizer
+component "l_objdbTimecard" as l_objdbTimecard
+component "l_objdbWorkGroup" as l_objdbWorkGroup
+component "l_objutilDBDataServices" as l_objutilDBDataServices
+component "l_strDistributionId" as l_strDistributionId
+component "l_varRecord" as l_varRecord
+component "l_varRowValues" as l_varRowValues
+component "l_varSchedChgPmt" as l_varSchedChgPmt
+component "lbusEAM" as lbusEAM
+component "lcolWorkgroup" as lcolWorkgroup
+component "lobj" as lobj
+component "lobjCM" as lobjCM
+component "lobjClientInfo" as lobjClientInfo
+component "lobjCodeTable" as lobjCodeTable
+component "lobjCodeTables" as lobjCodeTables
+component "lobjCollPeriod" as lobjCollPeriod
+component "lobjDB" as lobjDB
+component "lobjDBConnectMgr" as lobjDBConnectMgr
+component "lobjDBJCL" as lobjDBJCL
+component "lobjDataAccess" as lobjDataAccess
+component "lobjDepartment" as lobjDepartment
+component "lobjDistMgr" as lobjDistMgr
+component "lobjEmp" as lobjEmp
+component "lobjEmployee" as lobjEmployee
+component "lobjEnvironment" as lobjEnvironment
+component "lobjFunctionalSecurity" as lobjFunctionalSecurity
+component "lobjJobInfo" as lobjJobInfo
+component "lobjJobMgr" as lobjJobMgr
+component "lobjLevelMaintenance" as lobjLevelMaintenance
+component "lobjLocMgr" as lobjLocMgr
+component "lobjOT" as lobjOT
+component "lobjOTBanks" as lobjOTBanks
+component "lobjOTEqualizer" as lobjOTEqualizer
+component "lobjOTGroup" as lobjOTGroup
+component "lobjPS" as lobjPS
+component "lobjSaveTimecard" as lobjSaveTimecard
+component "lobjSched" as lobjSched
+component "lobjSchedExc" as lobjSchedExc
+component "lobjSchedExcSave" as lobjSchedExcSave
+component "lobjSchedule" as lobjSchedule
+component "lobjTime" as lobjTime
+component "lobjTimeCard" as lobjTimeCard
+component "lobjUtility" as lobjUtility
+component "lobjWG" as lobjWG
+component "lobjWGMgr" as lobjWGMgr
+component "lobjWgMgr" as lobjWgMgr
+component "lobjWorkGroup" as lobjWorkGroup
+component "lobjWorkgroup" as lobjWorkgroup
+component "lobjbusEmployee" as lobjbusEmployee
+component "lobjbusTimeKeeper" as lobjbusTimeKeeper
+component "lobjdb" as lobjdb
+component "lobjdbCodeTables" as lobjdbCodeTables
+component "lobjdbCollectionPeriods" as lobjdbCollectionPeriods
+component "lobjdbDataScope" as lobjdbDataScope
+component "lobjdbDepartment" as lobjdbDepartment
+component "lobjdbEAM" as lobjdbEAM
+component "lobjdbEAMSave" as lobjdbEAMSave
+component "lobjdbEAMTrans" as lobjdbEAMTrans
+component "lobjdbEmployee" as lobjdbEmployee
+component "lobjdbEmployee2" as lobjdbEmployee2
+component "lobjdbFunSecurity" as lobjdbFunSecurity
+component "lobjdbOTBanks" as lobjdbOTBanks
+component "lobjdbOTGroup" as lobjdbOTGroup
+component "lobjdbRules" as lobjdbRules
+component "lobjdbSched" as lobjdbSched
+component "lobjdbWG" as lobjdbWG
+component "lobjdbWorkgroup" as lobjdbWorkgroup
+component "mADOExtensions" as mADOExtensions
+component "m_ADOCommand" as m_ADOCommand
+component "m_ResourceMgr" as m_ResourceMgr
+component "marrDepartments" as marrDepartments
+component "marrEmployees" as marrEmployees
+component "marrExcepCount" as marrExcepCount
+component "marrRequestDate" as marrRequestDate
+component "marrRlfExcepCount" as marrRlfExcepCount
+component "marrWorkGroups" as marrWorkGroups
+component "mbusCascade" as mbusCascade
+component "mbusTimecard" as mbusTimecard
+component "mbusWorkGroup" as mbusWorkGroup
+component "mdbEnvironment" as mdbEnvironment
+component "mdbRules" as mdbRules
+component "mdbSecurity" as mdbSecurity
+component "mobjCodeTables" as mobjCodeTables
+component "mobjEmployee" as mobjEmployee
+component "mobjRules" as mobjRules
+component "mobjSchedule" as mobjSchedule
+component "mobjScheduleChangePayments" as mobjScheduleChangePayments
+component "mobjTimeCard" as mobjTimeCard
+component "mstEffUnionComp" as mstEffUnionComp
+component "newEntry" as newEntry
+component "o" as o
+component "oADOHelper" as oADOHelper
+component "oApplication" as oApplication
+component "oCatalog" as oCatalog
+component "oFS" as oFS
+component "oFSO" as oFSO
+component "oFile" as oFile
+component "oRules" as oRules
+component "oSPMWrapper" as oSPMWrapper
+component "oServerInfo" as oServerInfo
+component "oStream" as oStream
+component "oUtil" as oUtil
+component "oUtility" as oUtility
+component "objAdj" as objAdj
+component "objAutomatedAdjustments" as objAutomatedAdjustments
+component "objChassis" as objChassis
+component "objOTTimecard" as objOTTimecard
+component "objOtherPay" as objOtherPay
+component "objRegAccess" as objRegAccess
+component "objTime" as objTime
+component "objWMI" as objWMI
+component "objWMIService" as objWMIService
+component "obsSchedule" as obsSchedule
+component "ocdEmployee" as ocdEmployee
+component "ocdSchedule" as ocdSchedule
+component "ocdTimeCard" as ocdTimeCard
+component "ocdWorkGroup" as ocdWorkGroup
+component "r_cexRecordset" as r_cexRecordset
+component "r_objCaller" as r_objCaller
+component "r_objOtherPayEntry" as r_objOtherPayEntry
+component "r_objTimeEntry" as r_objTimeEntry
+component "r_objTimecardEntry" as r_objTimecardEntry
+component "r_rsRecords" as r_rsRecords
+component "r_spg" as r_spg
+component "radrsCopy" as radrsCopy
+component "ral" as ral
+component "re" as re
+component "recCache" as recCache
+component "robjSchedShift" as robjSchedShift
+component "rptActualTimeHistory" as rptActualTimeHistory
+component "rptDailyRoster" as rptDailyRoster
+component "rptException" as rptException
+component "rptMain" as rptMain
+component "rptSubReport1" as rptSubReport1
+component "rptSubReport2" as rptSubReport2
+component "rptSubReport3" as rptSubReport3
+component "rptWorkGroupSchedule" as rptWorkGroupSchedule
+component "sLastDataSaved" as sLastDataSaved
+component "spg" as spg
+component "spgm" as spgm
+component "spmWrapper" as spmWrapper
+component "stdmTRISCommon" as stdmTRISCommon
+component "str" as str
+component "tc" as tc
+component "te" as te
+component "time" as time
+component "timeEntry" as timeEntry
+component "utilDeptMgr" as utilDeptMgr
+component "utilJobMgr" as utilJobMgr
+component "utilUnionMgr" as utilUnionMgr
+component "util_DBConnectMgr" as util_DBConnectMgr
+component "util_TrisErrLog" as util_TrisErrLog
+component "v_rsOtherPayRequest" as v_rsOtherPayRequest
+component "v_varTranRecs" as v_varTranRecs
+
+cboEmployee --> l_obj
+cboEmployee --> dbEmployee
+cboEmployee --> lobjWgMgr
+cboEmployee --> AMBIG__CompanyCode
+cboEmployee --> l_dbEffectiveDateRules
+cboEmployee --> l_dbRules
+cboEmployee --> AMBIG__IsCoffeenOperations
+cboEmployee --> CreateObject
+cboEmployee --> AMBIG__IsStringInList
+cboEmployee --> AMBIG__IsSubstationOrTransmissionEmployee
+cboEmployee --> dbWorkGroup
+cboEmployeeProxy --> l_objcboEmployee
+cbsCodeTablesProxy --> l_objcbsCodeTables
+cbsCodeTablesTransProxy --> l_objcbsCodeTablesTrans
+cbsColPdProxy --> l_objcbsCollectionPeriod
+cbsDepartmentProxy --> l_objcbsDepartment
+cbsDistMgrProxy --> l_objcbsDistributionMgr
+cbsEmployeeProxy --> l_objcbsEmployee
+cbsEmployeeTransProxy --> l_objcbsEmployeeTrans
+cbsRotProxy --> l_objcbsSchedRotation
+cbsRotTransProxy --> l_objcbsSchedRotationTrans
+cbsScheduleProxy --> l_objcbsSchedule
+cbsSysAdminProxy --> l_objcbsSysAdmin
+cbsWorkGrpProxy --> l_objcbsWorkGroup
+cbsWorkGrpTransProxy --> l_objcbsWorkGroupTrans
+cdCodeTablesProxy --> l_objcdCodeTables
+cdCodeTablesTransProxy --> l_objcdCodeTablesTrans
+cdColPdProxy --> l_objcdCollectionPeriod
+cdDepartmentProxy --> l_objcdDepartment
+cdEffectiveDateRulesProxy --> l_objcdEffectiveDateRules
+cdRulesProxy --> l_objcdRules
+cdWorkGroupTransProxy --> l_objcdWorkGroupTrans
+cdWorkGrpProxy --> l_objcdWorkGroup
+cuSPMCacheProxy --> l_objcuSPMCache
+cbsAccrualBankMgr --> l_cbsEmployee
+cbsAccrualBankMgr --> l_cdEmployee
+cbsAccrualBankMgr --> l_obj
+cbsAccrualBankMgr --> l_dbAccrual
+cbsRequestFirstAppr --> lobjdb
+cbsRequestFirstAppr --> objTime
+cbsRequestFirstAppr --> objAdj
+cbsRequestFirstAppr --> lobjDataAccess
+cbsRequestFirstAppr --> l_objAdjustments
+cbsRequestFirstAppr --> objOtherPay
+cbsRequestFirstAppr --> objAutomatedAdjustments
+cbsRequestFirstApprTran --> lobjCodeTable
+cbsRequestFirstApprTran --> lobjEmployee
+cbsRequestFirstApprTran --> GetObjectContext
+cbsRequestFirstApprTran --> lobjDataAccess
+cbsRequestFirstApprTran --> stdmTRISCommon
+cbsCallLog --> l_cdCallLog
+cbsCascade --> mbusCascade
+cbsCascade --> LongAppErr
+cbsCascade --> l_obj
+cbsCascade --> l_cdWorkgroup
+cbsCascade --> l_cdCodeTables
+cbsCascade --> l_cdCascade
+cbsCascade --> l_objDBEmployee
+cbsCascade --> AMBIG__GetScheduledExceptionShifts
+cbsCascade --> l_cbsSchedule
+cbsCascade --> CreateObject
+cbsCascade --> AMBIG__ProcessExceptions
+cbsClientRelease --> lobjdb
+cbsCodeTables --> l_obj
+cbsCodeTables --> l_CodeTables
+cbsCodeTables --> Not
+cbsCodeTables --> lobjdbCodeTables
+cbsCodeTables --> l_dbSchedRotation
+cbsCodeTables --> l_objJobNumber
+cbsCodeTables --> l_objScheduleDetail
+cbsCodeTablesTrans --> GetObjectContext
+cbsCodeTablesTrans --> lobjdbCodeTables
+cbsCodeTablesTrans --> stdmTRISCommon
+cbsCollectionPeriod --> l_objdbCollectionPeriod
+cbsCollectionPeriod --> l_objCollectionPeriod
+cbsCollectionPeriod --> l_objEmployee
+cbsCollectionPeriod --> l_objPrevPayrollCd
+cbsCollectionPeriod --> l_obj
+cbsCollectionPeriod --> l_objDepartment
+cbsComment --> l_objComment
+cbsCommentTran --> l_objComment
+cbsCommentTran --> l_objEmployee
+cbsDepartment --> l_obj
+cbsDepartment --> CreateObject
+cbsDepartment --> l_objDepartment
+cbsDepartment --> l_objWkGp
+cbsDepartment --> AMBIG__IsCoffeenOperations
+cbsDistributionMgr --> l_obj
+cbsDistributionMgr --> l_objGetJobTaskList
+cbsDistributionMgr --> l_objGetDOJMWorkRequestsByRegion
+cbsDistributionMgr --> l_GetDOJMDistrictAndHeadquarters
+cbsDistributionMgr --> l_objDept
+cbsDistributionMgr --> Space
+cbsDistributionMgr --> l_getDistributionList
+cbsDistributionMgr --> db
+cbsDistributionMgr --> l_objGetDistributionList
+cbsDistributionMgr --> l_objDOJMDistrict
+cbsDistributionMgr --> l_objEMPRVJobTaskWG
+cbsDistributionMgr --> dbEnv
+cbsDistributionMgr --> l_strDistributionId
+cbsDistributionMgr --> Right
+cbsDistributionMgr --> l_objValidate
+cbsEAM --> AMBIG__RecordsExist
+cbsEAM --> lobjSchedExc
+cbsEAM --> lobjSchedule
+cbsEAM --> lobjdbEAM
+cbsEAM --> lobjdb
+cbsEAM --> Chr
+cbsEAM --> lobjPS
+cbsEAM --> lobjdbRules
+cbsEAMNotify --> lobjdb
+cbsEAMNotify --> lobjdbWG
+cbsEAMNotifyTrans --> lobjdb
+cbsEAMTrans --> DateTimeFrom
+cbsEAMTrans --> TimePeriodsIntersect
+cbsEAMTrans --> mADOExtensions
+cbsEAMTrans --> lobjdbCodeTables
+cbsEAMTrans --> lobjdbEAM
+cbsEAMTrans --> lobjCodeTables
+cbsEAMTrans --> lobjEmployee
+cbsEAMTrans --> lobjdbWorkgroup
+cbsEAMTrans --> CollectionHelper
+cbsEAMTrans --> DateAdd
+cbsEAMTrans --> AMBIG__RecordsExist
+cbsEAMTrans --> lbusEAM
+cbsEAMTrans --> m_ResourceMgr
+cbsEAMTrans --> sLastDataSaved
+cbsEAMTrans --> UniqueCollection
+cbsEAMTrans --> lobjSchedule
+cbsEAMTrans --> lobjSched
+cbsEAMTrans --> lobjTime
+cbsEAMTrans --> lobjdbCollectionPeriods
+cbsEAMTrans --> lobjdbEmployee
+cbsEAMTrans --> re
+cbsEAMTrans --> IIf
+cbsEAMTrans --> oUtil
+cbsEAMTrans --> GetObjectContext
+cbsEAMTrans --> lobjCollPeriod
+cbsEAMTrans --> lobjSchedExc
+cbsEAMTrans --> lobjSchedExcSave
+cbsEAMTrans --> lobjbusTimeKeeper
+cbsEAMTrans --> lobjdbEAMSave
+cbsEAMTrans --> lobjdbEAMTrans
+cbsEAMTrans --> Start
+cbsEAMTrans --> CheckForValidString
+cbsEmpFMLA --> DescArgsFrom
+cbsEmployee --> l_obj
+cbsEmployee --> lobjdbDepartment
+cbsEmployee --> lobjdbWorkgroup
+cbsEmployee --> AMBIG__EmployeeUnion
+cbsEmployee --> mADOExtensions
+cbsEmployee --> l_objEmployee
+cbsEmployee --> lobjdbEmployee
+cbsEmployee --> l_objdbAccrualBankMgr
+cbsEmployee --> l_objdbOTEqualizer
+cbsEmployee --> l_cdCodeTables
+cbsEmployee --> l_objWorkGroup
+cbsEmployee --> l_objdbCollectionPeriod
+cbsEmployee --> l_objdbDepartment
+cbsEmployee --> oRules
+cbsEmployeeTrans --> GetObjectContext
+cbsEmployeeTrans --> lobjdbCodeTables
+cbsEmployeeTrans --> lobjdbEmployee
+cbsEmployeeTrans --> lobjdbOTGroup
+cbsEmployeeTrans --> lobjdbWorkgroup
+cbsEmployeeTrans --> l_obj
+cbsEmployeeTrans --> stdmTRISCommon
+cbsEmployeeTrans --> lobjbusEmployee
+cbsEmployeeTrans --> lobjdbEmployee2
+cbsEmployeeTrans --> mADOExtensions
+cbsEnvironment --> db
+cbsEnvironment --> l_obj
+cbsEnvironmentTrans --> dbEnvTrans
+cbsEnvironmentTrans --> busEnvTrans
+cbsEnvironmentTrans2 --> dbEnvTrans
+cbsETimeCapture --> tc
+cbsETimeCapture --> o
+cbsETimeCapture --> db
+cbsETimeCaptureTrans --> db
+cbsJCL --> lobjDBJCL
+cbsJCLTrans --> lobjCodeTable
+cbsJCLTrans --> lobjDBJCL
+cbsJCLTrans --> lobjEmployee
+cbsJCLTrans --> lobjWorkgroup
+cbsJCLTrans --> lobjdbRules
+cbsJCLTrans --> mADOExtensions
+cbsJCLTrans --> GetObjectContext
+cbsJCLTrans --> Not
+cbsJCLTrans --> PadLeft
+cbsMissingTime --> oFSO
+cbsMissingTime --> lobjdb
+cbsMissingTime --> lobjSchedule
+cbsMissingTime --> ral
+cbsMissingTime --> re
+cbsOTBanks --> lobjOTBanks
+cbsOTBanks --> lobjOTGroup
+cbsOTBanksTrans --> lobjdbCodeTables
+cbsOTBanksTrans --> lobjdbEmployee
+cbsOTBanksTrans --> GetObjectContext
+cbsOTBanksTrans --> lobjdbOTBanks
+cbsOTBanksTrans --> stdmTRISCommon
+cbsOTCanvass --> DateTimeFrom
+cbsOTCanvass --> l_obj
+cbsOTCanvass --> MidnightDate
+cbsOTCanvassTrans --> AMBIG__IsOverrideThatAllowsOverlap
+cbsOTCanvassTrans --> l_objWorkGroup
+cbsOTCanvassTrans --> LongAppErr
+cbsOTCanvassTrans --> DateTimeFrom
+cbsOTCanvassTrans --> str
+cbsOTCanvassTrans --> l_obj
+cbsOTCanvassTrans --> lobjDB
+cbsOTCanvassTrans --> objOTTimecard
+cbsOTCanvassTrans --> l_objCodeTables
+cbsOTCanvassTrans --> AMBIG__GetEmployeeSchedules
+cbsOTCanvassTrans --> AMBIG__GetOtherPayEntries
+cbsOTCanvassTrans --> l_objEmployee
+cbsOTCanvassTrans --> CreateObject
+cbsOTCanvassTrans --> ocdTimeCard
+cbsOTCanvassTrans --> Abs
+cbsOTCanvassTrans --> AMBIG__IsScheduledOvertime
+cbsOTCanvassTrans --> l_objCodeTable
+cbsOTCanvassTrans --> TimePeriodsIntersect2
+cbsOTGroup --> lobjOTGroup
+cbsOTGroupTrans --> lobjWorkgroup
+cbsOTGroupTrans --> lobjdbCodeTables
+cbsOTGroupTrans --> lobjdbOTGroup
+cbsOTGroupTrans --> GetObjectContext
+cbsOTGroupTrans --> Not
+cbsOTGroupTrans --> mADOExtensions
+cbsOTGroupTrans --> stdmTRISCommon
+cbsOTTemplate --> l_obj
+cbsOTTemplateTrans --> l_obj
+cbsOTTimecard --> TrsGetErrDescription
+cbsOTTimecard --> l_objCodeTables
+cbsOTTimecard --> l_objEmployee
+cbsOTTimecard --> AMBIG__RecordsExist
+cbsOTTimecard --> l_objTimecard
+cbsOTTimecard --> cuContainer
+cbsOTTimecard --> l_obj
+cbsOTTimecard --> ocdWorkGroup
+cbsOTTimecard --> mADOExtensions
+cbsOTTimecard --> AMBIG__GetEmpWorkgroups
+cbsOTTimecard --> AMBIG__GetEmployees
+cbsOTTimecard --> AMBIG__GetOtherPayEntries
+cbsOTTimecard --> AMBIG__GetTimecardEntries
+cbsOTTimecard --> ocdEmployee
+cbsOTTimecard --> CreateObject
+cbsOTTimecard --> ocdTimeCard
+cbsOTTimecard --> obsSchedule
+cbsOTTimecard --> l_objDistributionMgr
+cbsOvertimeEqualizer --> str
+cbsOvertimeEqualizer --> time
+cbsOvertimeEqualizer --> l_obj
+cbsOvertimeEqualizer --> l_boCommonLib
+cbsOvertimeEqualizer --> l_dbOvertimeEqualizer
+cbsOvertimeEqualizer --> l_dbCodeTables
+cbsOvertimeEqualizer --> l_dbOTEqualizer
+cbsRules --> l_obj
+cbsSchedChgPay --> l_objSchedChgPay
+cbsSchedChgPay --> l_cbsSchedule
+cbsSchedChgPay --> l_dbSchedChgPay
+cbsSchedChgPay --> l_objSchedule
+cbsSchedChgPay --> l_obj
+cbsSchedChgPay --> l_objCodeTables
+cbsSchedChgPay --> l_objEmployee
+cbsSchedCodeMaint --> l_dbSchedRotation
+cbsSchedCodeMaintTran --> l_objSchedCode
+cbsSchedCodeMaintTran --> l_objScheduleCodes
+cbsSchedCodeMaintTran --> LongAppErr
+cbsSchedCodeMaintTran --> DateDiff
+cbsSchedDemand --> l_objSchDmd
+cbsSchedDemand --> lobjdb
+cbsSchedDemandTrans --> l_cdTimecard
+cbsSchedDemandTrans --> DateAdd
+cbsSchedDemandTrans --> LongAppErr
+cbsSchedDemandTrans --> lobjdbWorkgroup
+cbsSchedDemandTrans --> l_objDBSchDmd
+cbsSchedDemandTrans --> l_objBUSCodeTables
+cbsSchedDemandTrans --> l_objDBEmployee
+cbsSchedDemandTrans --> cbsCascade
+cbsSchedDemandTrans --> l_objDBWorkGroup
+cbsSchedDemandTrans --> l_cbsCascade
+cbsSchedDemandTrans --> GetObjectContext
+cbsSchedDemandTrans --> lobjdb
+cbsSchedDemandTrans --> l_objDBSchDmdTrans
+cbsSchedDemandTrans --> l_cbsSchedChgPay
+cbsSchedDemandTrans --> stdmTRISCommon
+cbsSchedException --> AMBIG__CanBeScheduledOnOffDay
+cbsSchedException --> DateAdd
+cbsSchedException --> l_obj
+cbsSchedExceptionTrans --> str
+cbsSchedExceptionTrans --> LongAppErr
+cbsSchedExceptionTrans --> IsEmpty
+cbsSchedExceptionTrans --> l_obj
+cbsSchedExceptionTrans --> DateAdd
+cbsSchedExceptionTrans --> l_cdWorkgroup
+cbsSchedExceptionTrans --> l_cdCodeTables
+cbsSchedExceptionTrans --> IsDate
+cbsSchedExceptionTrans --> AMBIG__IsAmerenCIPS
+cbsSchedExceptionTrans --> AMBIG__IsAmerenCIPSBenefitParticipant
+cbsSchedExceptionTrans --> AMBIG__IsNonWorkTime
+cbsSchedExceptionTrans --> AMBIG__DoesRuleApply
+cbsSchedExceptionTrans --> AMBIG__ExecutiveContractIndicatorForUnion
+cbsSchedExceptionTrans --> AMBIG__IsStringInList
+cbsSchedExceptionTrans --> AMBIG__IsComponentCode
+cbsSchedExceptionTrans --> AMBIG__IsValidExceptionCodeFor
+cbsSchedExceptionTrans --> AMBIG__IsOverrideExceptionCode
+cbsSchedExceptionTrans --> AMBIG__IsVacationReliefCode
+cbsSchedExceptionTrans --> lobjWGMgr
+cbsSchedExceptionTrans --> CreateObject
+cbsSchedPersonal --> l_dbSchedPersonal
+cbsSchedPersonalTrans --> l_cdTimecard
+cbsSchedPersonalTrans --> DateAdd
+cbsSchedPersonalTrans --> CreateObject
+cbsSchedPersonalTrans --> l_obj
+cbsSchedPersonalTrans --> l_objDBEmployee
+cbsSchedPersonalTrans --> l_dbSchedPersonal
+cbsSchedPersonalTrans --> l_busSchedRotation
+cbsSchedPersonalTrans --> BusScheduleDataManager
+cbsSchedPersonalTrans --> AMBIG__GetExistPersonalSched
+cbsSchedPersonalTrans --> l_dbDefaultEndDate
+cbsSchedPersonalTrans --> AMBIG__GetRotationSchedHeader
+cbsSchedPersonalTrans --> AMBIG__GetRotationSchedDetail
+cbsSchedPersonalTrans --> l_dbEmployee
+cbsSchedPersonalTrans --> CodeTableDataManager
+cbsSchedPersonalTrans --> cbsCascade
+cbsSchedPersonalTrans --> l_cbsCascade
+cbsSchedPersonalTrans --> LongAppErr
+cbsSchedPersonalTrans --> l_cbsSchedule
+cbsSchedPersonalTrans --> l_dbSchedChgPay
+cbsSchedPersonalTrans --> l_cdSchedule
+cbsSchedRotation --> l_dbSchedRotation
+cbsSchedRotationTrans --> CreateObject
+cbsSchedRotationTrans --> l_dbSchedRotation
+cbsSchedRotationTrans --> l_dbEmployee
+cbsSchedRotationTrans --> CodeTableDBMgr
+cbsSchedTrade --> l_obj
+cbsSchedTradeTrans --> l_cdTimecard
+cbsSchedTradeTrans --> str
+cbsSchedTradeTrans --> l_cbsCascade
+cbsSchedTradeTrans --> l_obj
+cbsSchedTradeTrans --> l_dbSchedule
+cbsSchedTradeTrans --> l_aryEmpHoursBeforeTrade
+cbsSchedTradeTrans --> l_dbSchedChgPay
+cbsSchedTradeTrans --> l_cdCascade
+cbsSchedule --> TrsGetErrDescription
+cbsSchedule --> DateAdd
+cbsSchedule --> l_obj
+cbsSchedule --> l_dbSchedule
+cbsSchedule --> AMBIG__GetEmployeeTrades
+cbsSchedule --> AMBIG__GetWorkGroupAssignments
+cbsSchedule --> AMBIG__GetWorkGroupLineAssignments
+cbsSchedule --> AMBIG__GetWorkGroupLineBaseSched
+cbsSchedule --> AMBIG__GetWorkGroupLineTrades
+cbsSchedule --> AMBIG__RecordsExist
+cbsSchedule --> AMBIG__DetermineTradeExceptionCode
+cbsBuiltDataScope --> lobjdbDataScope
+cbsBuiltDataScopeTrans --> GetObjectContext
+cbsBuiltDataScopeTrans --> lobjdbDataScope
+cbsCLIENTINFO --> lobjDataAccess
+cbsDataScope --> lobjdbDataScope
+cbsDataScopeTrans --> GetObjectContext
+cbsDataScopeTrans --> lobjDataAccess
+cbsDataScopeTrans --> lobjLevelMaintenance
+cbsDataScopeTrans --> lobjDB
+cbsDataScopeTrans --> lobjEnvironment
+cbsDataScopeTrans --> lobjFunctionalSecurity
+cbsFunSecurity --> lobjDataAccess
+cbsFunSecurity --> lobjClientInfo
+cbsLevelMaintenance --> lobjDataAccess
+cbsLevelMaintenance --> lobjdbFunSecurity
+cbsLevelMaintenanceTrans --> GetObjectContext
+cbsLevelMaintenanceTrans --> lobjDataAccess
+cbsLevelMaintenanceTrans --> lobjDB
+cbsSysAdmin --> radrsCopy
+cbsSysAdmin --> lobjdb
+cboOtherPay --> v_rsOtherPayRequest
+cboOtherPay --> dbTimeCard
+cboOtherPay --> r_objOtherPayEntry
+cboOtherPayEntry --> Employee
+cboOtherPayEntry --> Schedule
+cboOtherPayEntry --> l_obj
+cboOtherPayEntry --> FormatBRV
+cboOtherPayEntry --> lobjWGMgr
+cboOtherPayEntry --> AMBIG__DoesRuleApply
+cboOtherPayEntry --> GetDepartmentManager
+cboOtherPayEntry --> lobjJobMgr
+cboOtherPayEntry --> lobjLocMgr
+cboOtherPayEntry --> GetBusDepartment
+cboOtherPayEntry --> dbWorkgroup
+cboSchedule --> IsTimeBetween
+cboSchedule --> DateTimeFrom
+cboSchedule --> mobjScheduleChangePayments
+cboSchedule --> Employee
+cboSchedule --> l_bsSchedule
+cboSchedule --> l_dbSchedule
+cboScheduledShift --> Right
+cboScheduledShift --> TimePeriodsSubset
+cboScheduledShift --> DateTimeFrom
+cboTimecard --> Employee
+cboTimecard --> te
+cboTimecard --> AMBIG__GetScheduleChangePayments
+cboTimecard --> l_objTimeEntry
+cboTimecard --> l_varSchedChgPmt
+cboTimecard --> mobjEmployee
+cboTimecard --> mobjSchedule
+cboTimecard --> r_objTimeEntry
+cboTimecard --> GetBSTimecard
+cboTimecard --> mbusTimecard
+cboTimecard --> AMBIG__IsSpecialOverrideCode
+cboTimecard --> CreateObject
+cboTimecard --> l_objCollPeriod
+cboTimecard --> Schedule
+cboTimecard --> l_obj
+cboTimecard --> timeEntry
+cboTimecard --> dbTimeCard
+cboTimecard --> r_objTimecardEntry
+cboTimecardEntry --> Employee
+cboTimecardEntry --> Schedule
+cboTimecardEntry --> GetDepartmentManager
+cboTimecardEntry --> GetBusDepartmentManager
+cboTimecardEntry --> mbusTimecard
+cboTimecardEntry --> Timecard
+cboTimecardEntry --> lobjOTEqualizer
+cboTimecardEntry --> AMBIG__DoesRuleApply
+cboTimecardEntry --> l_obj
+cboTimecardEntry --> Mid
+cboTimecardEntry --> FormatBRV
+cboTimecardEntry --> CreateObject
+cboTimecardEntry --> lobjWGMgr
+cboTimecardEntry --> GetJobManager
+cboTimecardEntry --> AMBIG__IsStringInList
+cboTimecardEntry --> AMBIG__IsComponentCode
+cboTimecardEntry --> l_dbEffectiveDateRules
+cboTimecardEntry --> AMBIG__IsValidExceptionCodeFor
+cboTimecardEntry --> AMBIG__IsOverrideExceptionCode
+cboTimecardEntry --> IsDate
+cboTimecardEntry --> l_bsSchedule
+cboTimecardEntry --> newEntry
+cbsTimecard --> Timecard
+cbsTimecard --> TrsGetErrDescription
+cbsTimecard --> aryError
+cbsTimecard --> Schedule
+cbsTimecard --> l_obj
+cbsTimecard --> l_objdbTimecard
+cbsTimecard --> CreateObject
+cbsTimecard --> l_objCollPeriod
+cbsTimecard --> l_objdbWorkGroup
+cbsTimecard --> robjSchedShift
+cbsTimecard --> comint4
+cbsTimecard --> l_objRSEmployee
+cbsTimecard --> l_objcbsDistributionMgr
+cbsTimecard --> l_objcdTimecard
+cbsTimecard --> l_objdbEmployee
+cbsTimecard --> dbEnv
+cbsTimecard --> Employee
+cbsTimecard --> l_objGetAccountDescription
+cbsTimecard --> l_objGetActualTimeEntries
+cbsTimecard --> l_objGetJobTaskDistributionidDesc
+cbsTimecard --> l_objGetOverExccdDescription
+cbsTimecard --> l_objGetWGDistributionIDDescriptions
+cbsTimecard --> lcolWorkgroup
+cbsTimecard --> dbSaveTimecard
+mbusTimecard --> l_obj
+mbusTimecard --> GetExceptionCodeManager
+mbusTimecard --> l_ContainerLib
+mbusTimecard --> GetUnionManager
+mbusTimecard --> CreateObject
+mbusTimecard --> GetBusExceptionCodeManager
+mbusTimecard --> l_objReasonMgr
+mstEffUnionComp --> GetEffComponentDataManager
+mstEffUnionComp --> CreateObject
+mstEffUnionComp --> GetEffComponentBusManager
+cbsTimekeeper --> TrsGetErrDescription
+cbsTimekeeper --> l_obj
+cbsTimekeeper --> CreateObject
+cbsTimekeeper --> ocdWorkGroup
+cbsTimekeeper --> mADOExtensions
+cbsTimekeeper --> AMBIG__GetEmpWorkgroups
+cbsTimekeeper --> AMBIG__GetEmployees
+cbsTimekeeper --> AMBIG__GetOtherPayEntries
+cbsTimekeeper --> AMBIG__GetScheduleChangePayments
+cbsTimekeeper --> AMBIG__GetTimecardEntries
+cbsTimekeeper --> ocdEmployee
+cbsTimekeeper --> ocdTimeCard
+cbsTimekeeper --> ocdSchedule
+cbsTimekeeper --> IsDate
+cbsTimekeeper --> dbEnv
+cbsTimekeeper --> l_strDistributionId
+cbsTimekeeper --> lobjSaveTimecard
+cbsTimekeeper --> l_objDistributionMgr
+cbsTimekeeper --> l_objTimecard
+cbsTimekeeper --> AMBIG__IsDateValid
+cbsEmployee --> l_objbusEmployee
+cbsWorkGroup --> l_objWkGp
+cbsWorkGroup --> lobjEmployee
+cbsWorkGroup --> lobjSched
+cbsWorkGroup --> lobjTimeCard
+cbsWorkGroup --> lobjdbEmployee
+cbsWorkGroup --> mADOExtensions
+cbsWorkGroup --> lobjJobInfo
+cbsWorkGroup --> lobjCodeTable
+cbsWorkGroup --> lobjEmp
+cbsWorkGroup --> lobjWG
+cbsWorkGroup --> lobjdbSched
+cbsWorkGroup --> l
+cbsWorkGroupTrans --> IsEmpty
+cbsWorkGroupTrans --> l_cdTimecard
+cbsWorkGroupTrans --> AMBIG__GetDemandLineAssignments
+cbsWorkGroupTrans --> AMBIG__GetDemandLineSchedules
+cbsWorkGroupTrans --> DateAdd
+cbsWorkGroupTrans --> str
+cbsWorkGroupTrans --> l_cdCodeTables
+cbsWorkGroupTrans --> LongAppErr
+cbsWorkGroupTrans --> cuContainer
+cbsWorkGroupTrans --> TrsGetErrDescription
+cbsWorkGroupTrans --> Join
+cbsWorkGroupTrans --> Right
+cbsWorkGroupTrans --> l_cbsSchedule
+cbsWorkGroupTrans --> l_cdSchedule
+cbsWorkGroupTrans --> l_obj
+cbsWorkGroupTrans --> l_cdSchedDemand
+cbsWorkGroupTrans --> l_cdWorkgroup
+cbsWorkGroupTrans --> Space
+cbsWorkGroupTrans --> l_objWkGp
+cbsWorkGroupTrans --> AMBIG__IsDOJM
+cbsWorkGroupTrans --> mbusWorkGroup
+cbsWorkGroupTrans --> IsDate
+cbsWorkGroupTrans --> l_strDistributionId
+cbsWorkGroupTrans --> l_objDBEmployee
+cbsWorkGroupTrans --> cbsCascade
+cbsWorkGroupTrans --> l_cdSchedTrade
+cbsWorkGroupTrans --> l_cbsCascade
+cbsWorkGroupTrans --> AMBIG__RecordsExist
+cbsWorkGroupTrans --> l_cbsSchedChgPay
+cdAccrualBankMgr --> dbEnv
+cdAccrualBankMgr --> m_ResourceMgr
+cdAccrualBankMgr --> oADOHelper
+cdAccrualBankMgr --> l_objCM
+cdAccrualBankMgrTrans --> l_objCM
+cdAdjustments --> m_ResourceMgr
+cdAdjustments --> oADOHelper
+cdRequestFirstAppr --> stdmTRISCommon
+cdRequestFirstAppr --> lobjUtility
+cdCallLog --> l_objCallInfo
+cdCascade --> l_objSQLBuilder
+cdCascade --> l_dbTimecard
+cdCascade --> cuContainer
+cdCascade --> l_dbSchedule
+cdCascade --> l_objCM
+cdCascade --> Join
+cdCodeTables --> IIf
+cdCodeTables --> mADOExtensions
+cdCodeTables --> l_objCM
+cdCodeTables --> CreateObject
+cdCodeTables --> m_ResourceMgr
+cdCodeTables --> AMBIG__GroupSupportsLoadRecord
+cdCodeTables --> AMBIG__IsLazyInitialized
+cdCodeTables --> AMBIG__OneRowForEachKey
+cdCodeTables --> recCache
+cdCodeTables --> lobjdbDepartment
+cdCodeTables --> dbEnv
+cdCodeTables --> l_varRecord
+cdCodeTablesTrans --> lobjUtility
+cdCollectionPeriod --> AMBIG__PayProcessedIndicator
+cdCollectionPeriod --> l_objCM
+cdCollectionPeriod --> AMBIG__GetRecord
+cdCollectionPeriod --> l_varRowValues
+cdCollectionPeriod --> AMBIG__GroupSupportsLoadRecord
+cdCollectionPeriod --> AMBIG__IsLazyInitialized
+cdCollectionPeriod --> AMBIG__OneRowForEachKey
+cdCollectionPeriod --> recCache
+cdComment --> l_objDBConnectMgr
+cdCommentTrans --> l_objDBConnectMgr
+cdDepartment --> l_objCM
+cdDepartment --> AMBIG__GroupSupportsLoadRecord
+cdDepartment --> AMBIG__IsLazyInitialized
+cdDepartment --> AMBIG__OneRowForEachKey
+cdDepartment --> recCache
+cdDistributionMgr --> l_objCM
+cdDistributionMgr --> DescArgsFrom
+cdDistributionMgr --> l_objCMD
+cdDistributionMgr --> l_objDept
+cdDistributionMgr --> job
+cdDistributionMgr --> m_ResourceMgr
+cdDistributionMgr --> oADOHelper
+cdDistributionMgr --> dbEnv
+cdDistributionMgr --> Acmd
+cdDistributionMgr --> l_obj
+cdEAM --> SESSION
+cdEAMTrans --> lobjUtility
+cdEmpFMLA --> SYSADM
+cdEmpFMLA --> l_objCM
+cdEmployee --> utilDeptMgr
+cdEmployee --> utilJobMgr
+cdEmployee --> utilUnionMgr
+cdEmployee --> l_objCodeTables
+cdEmployee --> l_objCM
+cdEmployee --> SESSION
+cdEmployee --> m_ResourceMgr
+cdEmployee --> oADOHelper
+cdEmployee --> datahub
+cdEmployee --> lobjCM
+cdEmployeeTrans --> l_objCM
+cdEnvironment --> IIf
+cdEnvironment --> AMBIG__GroupSupportsLoadRecord
+cdEnvironment --> AMBIG__IsLazyInitialized
+cdEnvironment --> AMBIG__OneRowForEachKey
+cdEnvironment --> recCache
+cdEnvironmentTrans --> mdbEnvironment
+cdEnvironmentTrans2 --> OutputStream
+cdEnvironmentTrans2 --> oUtility
+cdEnvironmentTrans2 --> mdbEnvironment
+mdbEnvironment --> oUtility
+cdETimeCapture --> m_ResourceMgr
+cdETimeCapture --> oADOHelper
+cdETimeCaptureTrans --> m_ResourceMgr
+cdETimeCaptureTrans --> oADOHelper
+cdJCL --> lobjUtility
+cdMessageDispatcher --> l_objCM
+cdMessageDispatcher --> AMBIG__DateAsEnclosedString
+cdMessageDispatcher --> AMBIG__SinqleQuotedString
+cdMessageDispatcher --> METHDBA
+cdMessageDispatcher --> v_varTranRecs
+cdMessageDispatcher --> cm
+cdMissingTime --> m_ResourceMgr
+cdMissingTime --> oADOHelper
+cdMissingTime --> NewExecuteSQLWithConnection
+cdOTBanks --> SESSION
+cdOTCanvass --> m_ResourceMgr
+cdOTCanvass --> oADOHelper
+cdOTCanvass --> l_objCM
+cdOTCanvass --> l_objSQLBuilder
+cdOTCanvass --> AMBIG__DateAsEnclosedString
+cdOTCanvass --> AMBIG__SinqleQuotedString
+cdOTGroup --> mADOExtensions
+cdOTGroup --> lobjUtility
+cdOvertimeEqualizer --> l_objCM
+cdPeopleSoft --> datahub
+cdEffectiveDateRules --> l_objCM
+cdEffectiveDateRules --> AMBIG__BuildWhereClause
+cdEffectiveDateRules --> AMBIG__GroupSupportsLoadRecord
+cdEffectiveDateRules --> AMBIG__IsLazyInitialized
+cdEffectiveDateRules --> AMBIG__OneRowForEachKey
+cdEffectiveDateRules --> recCache
+cdEffectiveDateRules --> mdbRules
+cdRules --> o
+cdRules --> AMBIG__GroupSupportsLoadRecord
+cdRules --> AMBIG__IsLazyInitialized
+cdRules --> AMBIG__OneRowForEachKey
+cdRules --> recCache
+cdRules --> l_objCM
+cdRules --> AMBIG__BuildWhereClause
+mdbRules --> IIf
+cdSchedChgPay --> l_objCM
+cdSchedChgPay --> AMBIG__dbFormat
+cdSchedChgPayTrans --> Join
+cdSchedChgPayTrans --> cm
+cdSchedCodeMaint --> l_objCN
+cdSchedCodeMaint --> l_objutilDBDataServices
+cdSchedCodeMaint --> l_objCM
+cdSchedDemand --> l_objCM
+cdSchedDemandTrans --> Join
+cdSchedDemandTrans --> cm
+cdSchedException --> l_objCodeTables
+cdSchedException --> l_objCM
+cdSchedException --> lobjCM
+cdSchedException --> cuSQLBuilder
+cdSchedException --> mADOExtensions
+cdSchedPersonal --> l_objCM
+cdSchedPersonal --> cn
+cdSchedRotation --> l_objCM
+cdSchedRotation --> cn
+cdSchedTrade --> l_objCM
+cdSchedTrade --> Join
+cdSchedule --> l_objCM
+cdBuiltDataScope --> GetObjectContext
+cdDataScope --> SESSION
+cdDataScope --> stdmTRISCommon
+cdLevelMaintenance --> stdmTRISCommon
+cdLevelMaintenance --> l_objUtility
+mdbSecurity --> oFS
+cdTimeCard --> l_objCM
+cdTimeCard --> l_objCodeTables
+cdTimeCard --> cuSQLBuilder
+cdWorkGroup --> l_objCM
+cdWorkGroup --> mADOExtensions
+cdWorkGroup --> l_objCodeTables
+cdWorkGroup --> AMBIG__GroupSupportsLoadRecord
+cdWorkGroup --> AMBIG__IsLazyInitialized
+cdWorkGroup --> AMBIG__OneRowForEachKey
+cdWorkGroup --> recCache
+cdWorkGroup --> l_objCMD
+cdWorkGroup --> m_ResourceMgr
+cdWorkGroup --> oADOHelper
+cdWorkGroup --> dbEnv
+cdWorkGroupTrans --> AMBIG__RecordsExist
+cdWorkGroupTrans --> l_objCM
+cdWorkGroupTrans --> str
+rptActualTimeHistory --> Now
+rptActualTimeHistory --> rptMain
+rptActualTimeHistory --> rptSubReport1
+rptActualTimeHistory --> rptSubReport2
+rptActualTimeHistory --> l_obj
+rptActualTimeHistory --> l_objAdj
+rptActualTimeHistory --> l_objWorkgroup
+rptActualTimeHistory --> l_objEmployee
+rptDailyRoster --> lobjWorkGroup
+rptDailyRoster --> marrRequestDate
+rptDailyRoster --> mADOExtensions
+rptDailyRoster --> lobjDepartment
+rptDailyRoster --> lobjEmployee
+rptDailyRoster --> lobjbusEmployee
+rptDailyRoster --> marrDepartments
+rptDailyRoster --> marrEmployees
+rptDailyRoster --> rptMain
+rptDailyRoster --> lobjWG
+rptDailyRoster --> mobjRules
+rptDailyRoster --> mobjCodeTables
+rptDailyRoster --> mobjEmployee
+rptDailyRoster --> mobjTimeCard
+rptDailyRoster --> marrWorkGroups
+rptException --> l_objSchedException
+rptException --> l_objAccrualBankMgr
+rptException --> rptMain
+rptException --> l_objWorkgroup
+rptException --> Now
+rptException --> rptSubReport1
+rptException --> rptSubReport2
+rptException --> rptSubReport3
+rptWorkGroupSchedule --> lobjJobInfo
+rptWorkGroupSchedule --> mADOExtensions
+rptWorkGroupSchedule --> lobjSched
+rptWorkGroupSchedule --> lobj
+rptWorkGroupSchedule --> lobjWG
+rptWorkGroupSchedule --> rptMain
+rptWorkGroupSchedule --> mobjRules
+rptWorkGroupSchedule --> AMBIG__GetJobDesc
+rptWorkGroupSchedule --> mobjEmployee
+rptWorkGroupSchedule --> lobjOT
+rptWorkGroupSchedule --> marrExcepCount
+rptWorkGroupSchedule --> marrRlfExcepCount
+rptWorkGroupSchedule --> Mid
+cuADO --> m_ADOCommand
+cuADOHelper --> ADO
+cuADOHelperTrans --> ADO
+cuResourceMgr --> oSPMWrapper
+cuResourceMgr --> oFS
+cuResourceMgr --> oFile
+cuResourceMgr --> oStream
+cuResourceMgr --> OutputStream
+cuClientInfo --> objChassis
+cuClientInfo --> objWMIService
+cuClientInfo --> objWMI
+CExRecordset --> l_objCommonLib
+cuSQLBuilder --> r_cexRecordset
+cuSQLBuilder --> l_cexField
+cuDBDataServices --> l_objCM
+cuDBDataServicesNonTran --> l_objCM
+cuLockManager --> cm
+cuRecordCache --> spmWrapper
+cuRecordCache --> oServerInfo
+cuRecordCache --> r_objCaller
+cuRecordCache --> r_rsRecords
+cuRegistryAccess --> RegCloseKey
+cuRegistryAccess --> RegQueryInfoKey
+cuServerInfo --> Time
+cuServerInfo --> objWMI
+cuServerInfo --> SWbemLocator
+cuServerInfo --> SWbemServices
+cuServerInfo --> AMBIG__GroupSupportsLoadRecord
+cuServerInfo --> AMBIG__IsLazyInitialized
+cuServerInfo --> AMBIG__OneRowForEachKey
+cuServerInfo --> recCache
+cuServerInfo --> lobjCodeTables
+cuServerInfo --> lobjDBConnectMgr
+cuServerInfo --> lobjDistMgr
+cuServerInfo --> oApplication
+cuServerInfo --> oCatalog
+cuServerInfo --> oFS
+cuSPMCache --> cuContainer
+cuSPMCache --> spg
+cuSPMCache --> spgm
+cuSPMCache --> CreateObject
+cuSPMCache --> r_spg
+util_DBConnectMgr --> ral
+util_DBConnectMgr --> DescArgsFrom
+util_TrisErrLog --> lFileFSO
+util_TrisErrLog --> App
+util_TrisErrLog --> objRegAccess
+@enduml

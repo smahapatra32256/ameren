@@ -1,0 +1,18 @@
+@startuml
+participant Caller
+participant cbsClientRelease
+participant util_DBConnectMgr
+group GetClientVersion
+  Caller -> cbsClientRelease: GetClientVersion()
+  activate cbsClientRelease
+  alt Normal Execution Path
+    cbsClientRelease -> util_DBConnectMgr: CreateObject("util_DBConnectMgr.clsuDBConnectMgr")
+    activate util_DBConnectMgr
+    util_DBConnectMgr --> cbsClientRelease: lobjCnMgr object
+    cbsClientRelease -> util_DBConnectMgr: GetDataSourceName()
+    activate util_DBConnectMgr
+    deactivate util_DBConnectMgr
+  end
+  deactivate cbsClientRelease
+end
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+participant Caller
+participant "cbsCodeTablesTransProxy.cls"
+participant "busCodeTables.cbsCodeTablesTrans"
+group ProcessOTCodeTableEntries
+  Caller -> "cbsCodeTablesTransProxy.cls": ProcessOTCodeTableEntries(vadrsOTCodeTableInformation, radrsErrors, vlUserEmployeeNumber)
+  activate "cbsCodeTablesTransProxy.cls"
+  "cbsCodeTablesTransProxy.cls" -> "busCodeTables.cbsCodeTablesTrans": CreateObject("busCodeTables.cbsCodeTablesTrans")
+  activate "busCodeTables.cbsCodeTablesTrans"
+  alt Successful execution
+    "cbsCodeTablesTransProxy.cls" -> "busCodeTables.cbsCodeTablesTrans": ProcessOTCodeTableEntries(vadrsOTCodeTableInformation, radrsErrors, vlUserEmployeeNumber)
+    "busCodeTables.cbsCodeTablesTrans" --> "cbsCodeTablesTransProxy.cls"
+  end
+  deactivate "busCodeTables.cbsCodeTablesTrans"
+  "cbsCodeTablesTransProxy.cls" --> Caller
+  deactivate "cbsCodeTablesTransProxy.cls"
+end
+group ProcessPromotionalLinesEntries
+  Caller -> "cbsCodeTablesTransProxy.cls": ProcessPromotionalLinesEntries(vadrsPromotionalLines, radrsErrors, vlUserEmployeeNumber)
+  activate "cbsCodeTablesTransProxy.cls"
+  "cbsCodeTablesTransProxy.cls" -> "busCodeTables.cbsCodeTablesTrans": CreateObject()
+  activate "busCodeTables.cbsCodeTablesTrans"
+  alt Successful processing
+    "cbsCodeTablesTransProxy.cls" -> "busCodeTables.cbsCodeTablesTrans": ProcessPromotionalLinesEntries(vadrsPromotionalLines, radrsErrors, vlUserEmployeeNumber)
+    "busCodeTables.cbsCodeTablesTrans" --> "cbsCodeTablesTransProxy.cls"
+  end
+  deactivate "busCodeTables.cbsCodeTablesTrans"
+  "cbsCodeTablesTransProxy.cls" --> Caller
+  deactivate "cbsCodeTablesTransProxy.cls"
+end
+@enduml

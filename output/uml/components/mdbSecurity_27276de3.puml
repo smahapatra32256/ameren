@@ -1,0 +1,35 @@
+@startuml
+participant Caller
+participant mdbSecurity
+participant "Resource Manager"
+participant FileSystemObject
+group LoadStaticVars
+  Caller -> mdbSecurity: LoadStaticVars()
+  activate mdbSecurity
+  alt If m_blnStaticVarsLoaded is False
+    mdbSecurity -> "Resource Manager": Request SQL resource string
+    activate "Resource Manager"
+    loop For each of ~56 unique SQL resource strings
+      "Resource Manager" --> mdbSecurity: Return SQL string content
+      mdbSecurity -> mdbSecurity: Store SQL string in static variable
+    end
+    deactivate "Resource Manager"
+    mdbSecurity -> mdbSecurity: Set m_blnStaticVarsLoaded = True
+  end
+  deactivate mdbSecurity
+end
+group GetStringResource
+  Caller -> mdbSecurity: GetStringResource(v_strFilename)
+  activate mdbSecurity
+  mdbSecurity -> FileSystemObject: New FileSystemObject
+  activate FileSystemObject
+  FileSystemObject --> mdbSecurity: oFS instance
+  deactivate FileSystemObject
+  mdbSecurity -> FileSystemObject: BuildPath("C:\TRIS SOLUTION\dbScripts\dbSecurity", v_strFilename)
+  activate FileSystemObject
+  FileSystemObject --> mdbSecurity: sFilename (full path)
+  deactivate FileSystemObject
+  mdbSecurity -> FileSystemObject: FileExists(sFilename)
+  deactivate mdbSecurity
+end
+@enduml

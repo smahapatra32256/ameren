@@ -1,0 +1,172 @@
+@startuml
+participant Caller
+participant cbsScheduleProxy as "cbsScheduleProxy.cls"
+participant COM_Runtime as "COM Runtime"
+participant busSchedule_cbsSchedule as "busSchedule.cbsSchedule"
+participant TrsRaiseError
+group GetAdjustedBaseSchedule
+  Caller -> cbsScheduleProxy: GetAdjustedBaseSchedule(v_aryEmployees, v_datStartDate, v_datEndDate, r_rsScheduleWithoutExceptions, ...)
+  activate cbsScheduleProxy
+  cbsScheduleProxy -> busSchedule_cbsSchedule: CreateObject("busSchedule.cbsSchedule")
+  activate busSchedule_cbsSchedule
+  busSchedule_cbsSchedule --> cbsScheduleProxy: Instance created
+  alt Success path
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GetAdjustedBaseSchedule(v_aryEmployees, v_datStartDate, v_datEndDate, r_rsScheduleWithoutExceptions, ...)
+    activate busSchedule_cbsSchedule
+    busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset result
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Release object
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: ADODB.Recordset result
+  else Error path (eh)
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Release object
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy -> TrsRaiseError: Raise Error "busSchedule.cbsSchedule", "GetAdjustedBaseSchedule", ...
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error raised
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GetEffectiveWorkGroupBaseSchedule
+  Caller -> cbsScheduleProxy: GetEffectiveWorkGroupBaseSchedule(v_lngWorkGroup, v_datDate)
+  activate cbsScheduleProxy
+  cbsScheduleProxy -> busSchedule_cbsSchedule: CreateObject("busSchedule.cbsSchedule")
+  activate busSchedule_cbsSchedule
+  alt Successful execution
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GetEffectiveWorkGroupBaseSchedule(v_lngWorkGroup, v_datDate)
+    busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset result
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Release object (Set Nothing)
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: ADODB.Recordset
+  else On Error
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Release object (Set Nothing)
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy -> TrsRaiseError: Raise error for busSchedule.cbsSchedule.GetEffectiveWorkGroupBaseSchedule
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error handled
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GetSchedulesInRotation
+  Caller -> cbsScheduleProxy: GetSchedulesInRotation(v_intRotationCode, v_datDate, v_datEffectiveDate, v_intStartWeek)
+  activate cbsScheduleProxy
+  alt Successful execution
+    cbsScheduleProxy -> COM_Runtime: CreateObject("busSchedule.cbsSchedule")
+    activate COM_Runtime
+    COM_Runtime --> cbsScheduleProxy: busSchedule.cbsSchedule instance
+    deactivate COM_Runtime
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GetSchedulesInRotation(v_intRotationCode, v_datDate, v_datEffectiveDate, v_intStartWeek)
+    activate busSchedule_cbsSchedule
+    busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: ADODB.Recordset
+  else Error during processing
+    cbsScheduleProxy -> TrsRaiseError: Raise error "busSchedule.cbsSchedule", "GetSchedulesInRotation"
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error raised
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GetAdjustedBaseWorkGroupSchedules
+  Caller -> cbsScheduleProxy: GetAdjustedBaseWorkGroupSchedules(v_aryWorkgroups, v_datStartDate, v_datEndDate, v_ReturnOption, v_ScheduleSourceStartLevel)
+  activate cbsScheduleProxy
+  alt On Error GoTo eh
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Create instance
+    activate busSchedule_cbsSchedule
+    busSchedule_cbsSchedule --> cbsScheduleProxy: Object instance
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GetAdjustedBaseWorkGroupSchedules(v_aryWorkgroups, v_datStartDate, v_datEndDate, v_ReturnOption, v_ScheduleSourceStartLevel)
+    activate busSchedule_cbsSchedule
+    busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: ADODB.Recordset
+  else Error occurred
+    cbsScheduleProxy -> TrsRaiseError: Raise error
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error handled
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GABEmployeeSchedOnSpecificDates
+  Caller -> cbsScheduleProxy: GABEmployeeSchedOnSpecificDates(v_rsEmployeesAndDates, r_rsScheduleWithoutExceptions, v_blnReturnScheduleWithoutExceptions, v_ReturnOption, v_ScheduleSourceStartLevel)
+  activate cbsScheduleProxy
+  alt Successful execution
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Instantiate busSchedule.cbsSchedule
+    activate busSchedule_cbsSchedule
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GABEmployeeSchedOnSpecificDates(v_rsEmployeesAndDates, r_rsScheduleWithoutExceptions, v_blnReturnScheduleWithoutExceptions, v_ReturnOption, v_ScheduleSourceStartLevel)
+    busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset result
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Release object
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: ADODB.Recordset result
+  else Error occurs
+    opt If busSchedule.cbsSchedule was instantiated
+      cbsScheduleProxy -> busSchedule_cbsSchedule: Release object
+      deactivate busSchedule_cbsSchedule
+    end
+    cbsScheduleProxy -> TrsRaiseError: Raise error "busSchedule.cbsSchedule", "GABEmployeeSchedOnSpecificDates", ...
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error raised
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GetPendingAdjustedBaseSchedule
+  Caller -> cbsScheduleProxy: GetPendingAdjustedBaseSchedule(v_rsEmployeesAndDates, ...)
+  activate cbsScheduleProxy
+  cbsScheduleProxy -> busSchedule_cbsSchedule: Create COM Object instance
+  activate busSchedule_cbsSchedule
+  cbsScheduleProxy -> busSchedule_cbsSchedule: GetPendingAdjustedBaseSchedule(v_rsEmployeesAndDates, r_rsScheduleWithoutExceptions, ...)
+  busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset (Adjusted Base Schedule)
+  deactivate busSchedule_cbsSchedule
+  cbsScheduleProxy --> Caller: ADODB.Recordset
+  alt On Error
+    cbsScheduleProxy -> TrsRaiseError: Raise Error "busSchedule.cbsSchedule", "GetPendingAdjustedBaseSchedule"
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error handled
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GetRotationScheduleCode
+  Caller -> cbsScheduleProxy: GetRotationScheduleCode(v_datChargeDate, v_intRotationCode, v_datEffDate, v_intStartPosition, r_intRecordPosition)
+  activate cbsScheduleProxy
+  cbsScheduleProxy -> busSchedule_cbsSchedule: CreateObject("busSchedule.cbsSchedule")
+  activate busSchedule_cbsSchedule
+  alt Successful execution
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GetRotationScheduleCode(v_datChargeDate, v_intRotationCode, v_datEffDate, v_intStartPosition, r_intRecordPosition)
+    busSchedule_cbsSchedule --> cbsScheduleProxy: RotationScheduleCode (and updated r_intRecordPosition)
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: RotationScheduleCode
+  else On Error
+    cbsScheduleProxy -> TrsRaiseError: Raise error "busSchedule.cbsSchedule", "GetRotationScheduleCode"
+    activate TrsRaiseError
+    TrsRaiseError --> cbsScheduleProxy: Error handled
+    deactivate TrsRaiseError
+    cbsScheduleProxy --> Caller: Error
+  end
+  deactivate cbsScheduleProxy
+end
+group GetAdjustedBaseDepartmentSchedules
+  Caller -> cbsScheduleProxy: GetAdjustedBaseDepartmentSchedules(v_aryDepartments, v_datStartDate, v_datEndDate, v_ReturnOption, v_ScheduleSourceStartLevel)
+  activate cbsScheduleProxy
+  alt No Error Occurs
+    cbsScheduleProxy -> busSchedule_cbsSchedule: Create busSchedule.cbsSchedule instance
+    activate busSchedule_cbsSchedule
+    busSchedule_cbsSchedule --> cbsScheduleProxy: Instance created
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy -> busSchedule_cbsSchedule: GetAdjustedBaseDepartmentSchedules(v_aryDepartments, v_datStartDate, v_datEndDate, v_ReturnOption, v_ScheduleSourceStartLevel)
+    activate busSchedule_cbsSchedule
+    busSchedule_cbsSchedule --> cbsScheduleProxy: ADODB.Recordset result
+    deactivate busSchedule_cbsSchedule
+    cbsScheduleProxy --> Caller: AD
+@enduml

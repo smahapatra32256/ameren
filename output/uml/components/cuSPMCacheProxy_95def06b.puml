@@ -1,0 +1,133 @@
+@startuml
+participant Caller
+participant "cuSPMCacheProxy.cls" as Proxy
+participant "COM Runtime"
+participant "utilSPMCache.cuSPMCache" as SPMCache
+participant "Error Handler"
+group GetIsolationMode
+  Caller -> Proxy: GetIsolationMode(v_strGroupName, r_blnExists)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM Runtime: CreateObject("utilSPMCache.cuSPMCache")
+    activate COM Runtime
+    COM Runtime --> Proxy: Object reference
+    deactivate COM Runtime
+    Proxy -> SPMCache: GetIsolationMode(v_strGroupName, r_blnExists)
+    activate SPMCache
+    SPMCache --> Proxy: Isolation Mode result
+    deactivate SPMCache
+    Proxy -> Proxy: Set l_objcuSPMCache = Nothing
+    Proxy --> Caller: Isolation Mode result
+  else Error during execution
+    Proxy -> Error Handler: TrsRaiseError("utilSPMCache.cuSPMCache", "GetIsolationMode", ...)
+    activate "Error Handler"
+    "Error Handler" --> Proxy: Error handled
+    deactivate "Error Handler"
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetReleaseMode
+  Caller -> Proxy: GetReleaseMode(v_strGroupName, r_blnExists)
+  activate Proxy
+  alt Successful execution
+    Proxy -> COM Runtime: CreateObject("utilSPMCache.cuSPMCache")
+    activate COM Runtime
+    COM Runtime --> Proxy: New instance
+    deactivate COM Runtime
+    Proxy -> SPMCache: GetReleaseMode(v_strGroupName, r_blnExists)
+    activate SPMCache
+    SPMCache --> Proxy: ReleaseModeValue
+    deactivate SPMCache
+    Proxy -> Proxy: Set l_objcuSPMCache = Nothing
+    Proxy --> Caller: ReleaseModeValue
+  else Error handler (eh:)
+    Proxy -> Proxy: Set l_objcuSPMCache = Nothing
+    Proxy -> Error Handler: Raise Error
+    activate "Error Handler"
+    "Error Handler" --> Proxy: Error Handled
+    deactivate "Error Handler"
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetSupportsKeys
+  Caller -> Proxy: GetSupportsKeys(v_strGroupName, r_blnExists)
+  activate Proxy
+  alt Successful execution path
+    Proxy -> COM Runtime: Instantiate object "utilSPMCache.cuSPMCache"
+    activate COM Runtime
+    COM Runtime --> Proxy: Object instance
+    deactivate COM Runtime
+    Proxy -> SPMCache: GetSupportsKeys(v_strGroupName, r_blnExists)
+    activate SPMCache
+    SPMCache --> Proxy: Supports keys result (Boolean)
+    deactivate SPMCache
+    Proxy -> Proxy: Release l_objcuSPMCache
+    Proxy --> Caller: Function result (Boolean)
+  else Error occurs (On Error GoTo eh)
+    Proxy -> Proxy: Release l_objcuSPMCache
+    Proxy -> Error Handler: Raise error "utilSPMCache.cuSPMCache", "GetSupportsKeys"
+    activate "Error Handler"
+    "Error Handler" --> Proxy: Error raised
+    deactivate "Error Handler"
+    Proxy --> Caller: Error condition
+  end
+  deactivate Proxy
+end
+group CreateGroup
+  Caller -> Proxy: CreateGroup(v_strGroupName, r_blnExists, r_lngIsolationMode, r_lngReleaseMode, r_blnKeySupport)
+  activate Proxy
+  Proxy -> COM Runtime: CreateObject("utilSPMCache.cuSPMCache")
+  activate COM Runtime
+  COM Runtime --> Proxy: l_objcuSPMCache instance
+  deactivate COM Runtime
+  alt Success path
+    Proxy -> SPMCache: CreateGroup(v_strGroupName, r_blnExists, r_lngIsolationMode, r_lngReleaseMode, r_blnKeySupport)
+    activate SPMCache
+    SPMCache --> Proxy: Group created result
+    deactivate SPMCache
+    Proxy -> Proxy: Release l_objcuSPMCache
+    Proxy --> Caller: Group created result
+  else Error path
+    Proxy -> Proxy: Release l_objcuSPMCache
+    Proxy -> Error Handler: TrsRaiseError("utilSPMCache.cuSPMCache", "CreateGroup", ...)
+    activate "Error Handler"
+    "Error Handler" --> Proxy: Error handled
+    deactivate "Error Handler"
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GroupExists
+  Caller -> Proxy: GroupExists(v_strGroupName)
+  activate Proxy
+  Proxy -> COM Runtime: Instantiate l_objcuSPMCache "utilSPMCache.cuSPMCache"
+  activate COM Runtime
+  COM Runtime --> Proxy: Object instance
+  deactivate COM Runtime
+  alt No Error
+    Proxy -> SPMCache: GroupExists(v_strGroupName)
+    activate SPMCache
+    SPMCache --> Proxy: result (Boolean)
+    deactivate SPMCache
+    Proxy -> Proxy: Release l_objcuSPMCache
+    Proxy --> Caller: result (Boolean)
+  else Error Occurs
+    Proxy -> Proxy: Release l_objcuSPMCache
+    Proxy -> Error Handler: Raise Error
+    activate "Error Handler"
+    "Error Handler" --> Proxy: Error Raised
+    deactivate "Error Handler"
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group Item
+  Caller -> Proxy: Item(v_strKey, v_strGroupName, r_blnExists, r_blnGroupExists)
+  activate Proxy
+  alt Success Path
+    Proxy -> COM Runtime: Create COM Object "utilSPMCache.cuSPMCache"
+    activate COM Runtime
+    COM Runtime --> Proxy: l_objcu
+@enduml

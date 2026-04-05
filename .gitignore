@@ -7,19 +7,20 @@ env/
 venv/
 .venv/
 
-!output/
+# !output/
 .gemini/
 
 # Outputs and user data
-output/*
+# output/*
 
 !output/__init__.txt
 # input_code/
 *.db
 *.sqlite3
+*.db-journal
+*.sqlite3-journal
 
 # OS generated files
 .DS_Store
 Thumbs.db
-
 

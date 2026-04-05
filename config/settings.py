@@ -11,7 +11,7 @@ EMBEDDING_MODEL_NAME = "text-embedding-004"
 # FAISS Configuration
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 FAISS_INDEX_PATH = os.path.join(OUTPUT_DIR, "faiss_index.bin")
-METADATA_DB_PATH = os.path.join(OUTPUT_DIR, "metadata.db")
+METADATA_DB_PATH = os.path.join(OUTPUT_DIR, "metadata.sqlite3")
 
 # Chunking and generation limits
 BATCH_SIZE = 100

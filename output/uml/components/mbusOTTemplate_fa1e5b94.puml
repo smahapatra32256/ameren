@@ -1,0 +1,21 @@
+@startuml
+participant Caller
+participant mbusOTTemplate
+participant "ADODB.Recordset" as ADODB_Recordset
+Caller -> mbusOTTemplate: NewTemplateErrorset()
+activate mbusOTTemplate
+mbusOTTemplate -> ADODB_Recordset: Instantiate l_rsErrors
+activate ADODB_Recordset
+mbusOTTemplate -> ADODB_Recordset: Append Field "EMP_NUM" (adInteger)
+mbusOTTemplate -> ADODB_Recordset: Append Field "CHARGE_DATE" (adDate)
+mbusOTTemplate -> ADODB_Recordset: Append Field "DATE_WORKED" (adDate)
+mbusOTTemplate -> ADODB_Recordset: Append Field "START_TIME" (adChar, 5)
+mbusOTTemplate -> ADODB_Recordset: Append Field "END_TIME" (adChar, 5)
+mbusOTTemplate -> ADODB_Recordset: Append Field "ELAPSED_HOURS" (adDecimal)
+mbusOTTemplate -> ADODB_Recordset: Set "ELAPSED_HOURS" Precision=3, Scale=1
+mbusOTTemplate -> ADODB_Recordset: Append Field "EXCEPTION_CD" (adChar, 3)
+mbusOTTemplate -> ADODB_Recordset: Append Field "OVER_EXC_CD" (adChar, 3)
+mbusOTTemplate -> ADODB_Recordset: Append Field "ERR_NUMBER" (adInteger)
+deactivate ADODB_Recordset
+deactivate mbusOTTemplate
+@enduml

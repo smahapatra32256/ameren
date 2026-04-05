@@ -1,0 +1,42 @@
+@startuml
+participant Caller
+participant cdClientRelease
+participant ExecuteSQL
+database Database
+participant TrsRaiseError
+Caller -> cdClientRelease: db_GetClientVersionInfo()
+activate cdClientRelease
+cdClientRelease -> cdClientRelease: Initialize return Recordset to Nothing
+cdClientRelease -> cdClientRelease: Construct SQL statement for TTR_SYSPARMS
+alt No error occurs
+  cdClientRelease -> ExecuteSQL: ExecuteSQL(SQL_Statement, adOpenStatic, adLockBatchOptimistic)
+  activate ExecuteSQL
+  ExecuteSQL -> Database: SELECT PARM_SUFFIX, PARM_VALUE, PARM_DESC FROM METHDBA.TTR_SYSPARMS WHERE PARM_NUM = 17 ORDER BY PARM_SUFFIX FOR FETCH ONLY WITH UR
+  activate Database
+  Database --> ExecuteSQL: Recordset of client version parameters
+  deactivate Database
+  ExecuteSQL --> cdClientRelease: ADODB.Recordset
+  deactivate ExecuteSQL
+  cdClientRelease --> Caller: ADODB.Recordset
+else Error occurs (On Error GoTo db_GetClientVersionInfo_EH)
+  cdClientRelease -> cdClientRelease: Handle error based on Err.Number
+  alt Err.Number = trErrutOpenConnection
+    cdClientRelease -> TrsRaiseError: Raise error: Open connection failed
+    activate TrsRaiseError
+    TrsRaiseError --> cdClientRelease: Error raised
+    deactivate TrsRaiseError
+  else Err.Number = trErrdb_ExecuteSQL_F
+    cdClientRelease -> TrsRaiseError: Raise error: Execute SQL failed (SQL: lsSQL)
+    activate TrsRaiseError
+    TrsRaiseError --> cdClientRelease: Error raised
+    deactivate TrsRaiseError
+  else Other error
+    cdClientRelease -> TrsRaiseError: Raise error: db_GetClientVersionInfo failed
+    activate TrsRaiseError
+    TrsRaiseError --> cdClientRelease: Error raised
+    deactivate TrsRaiseError
+  end
+  cdClientRelease --> Caller: Error
+end
+deactivate cdClientRelease
+@enduml

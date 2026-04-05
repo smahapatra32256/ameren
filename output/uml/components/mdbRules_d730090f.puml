@@ -1,0 +1,98 @@
+@startuml
+participant Caller
+participant "mdbRules.bas" as mdbRules
+participant System
+participant "Connection Object" as ConnectionObject
+participant "Recordset Object" as RecordsetObject
+participant BuildInClause
+participant StringEnclosedBy
+participant TrsRaiseError
+participant "r_colErrArgs (Collection)" as ErrorCollection
+' Group: GetCacheRecords
+Caller -> mdbRules: GetCacheRecords(v_strSQL, eLockType)
+activate mdbRules
+alt TRDEBUG is defined
+  mdbRules -> System: GetTickCount()
+  activate System
+  System --> mdbRules: stTime
+  deactivate System
+end
+mdbRules -> ConnectionObject: New ADODB.Connection
+activate ConnectionObject
+ConnectionObject --> mdbRules: l_objCN
+deactivate ConnectionObject
+mdbRules -> RecordsetObject: New ADODB.Recordset
+activate RecordsetObject
+RecordsetObject --> mdbRules: l_objRS
+deactivate RecordsetObject
+' The rest of GetCacheRecords method is not provided in snippets
+deactivate mdbRules
+' Group: BuildWhereClause
+Caller -> mdbRules: BuildWhereClause(v_strSQLKeyWord, v_strColumn, v_varColumnValues, v_blnDelimit)
+activate mdbRules
+opt On Error
+  mdbRules -> mdbRules: Initialize local variables
+end
+alt If v_varColumnValues is missing or empty
+  mdbRules -> mdbRules: Set l_strWhereClause to empty string
+else If v_varColumnValues is an array
+  mdbRules -> BuildInClause: BuildInClause(v_strColumn, v_varColumnValues, v_blnDelimit)
+  activate BuildInClause
+  BuildInClause --> mdbRules: InClauseString
+  deactivate BuildInClause
+  mdbRules -> mdbRules: Construct l_strWhereClause with InClauseString
+else
+  alt If v_blnDelimit is true
+    mdbRules -> StringEnclosedBy: StringEnclosedBy(Trim(CStr(v_varColumnValues)), "'")
+    activate StringEnclosedBy
+    StringEnclosedBy --> mdbRules: DelimitedString
+    deactivate StringEnclosedBy
+    mdbRules -> mdbRules: Construct l_strWhereClause with DelimitedString
+  else
+    mdbRules -> mdbRules: Construct l_strWhereClause with Trim(CStr(v_varColumnValues))
+  end
+end
+alt Success Path
+  mdbRules --> Caller: Constructed Where Clause
+else Error Occurs
+  mdbRules -> mdbRules: Create l_colErrArgs Collection
+  mdbRules -> mdbRules: Add argument details to l_colErrArgs
+  mdbRules -> TrsRaiseError: TrsRaiseError(m_strCMODULENAME, "BuildWhereClause", , , , l_colErrArgs, True)
+  activate TrsRaiseError
+  TrsRaiseError --> mdbRules: Error Handled
+  deactivate TrsRaiseError
+  mdbRules --> Caller: Error
+end
+deactivate mdbRules
+' Group: BuildWhereClauseForMultiKey
+Caller -> mdbRules: BuildWhereClauseForMultiKey(v_strSQLKeyWord, v_strColumn, v_varColumnValues, v_blnDelimit)
+activate mdbRules
+alt v_varColumnValues is missing or empty
+  mdbRules -> mdbRules: Set l_strWhereClause = ""
+else v_varColumnValues is present
+  alt All input arrays have consistent bounds
+    mdbRules -> mdbRules: Set l_strWhereClause = ""
+    loop For each key
+      mdbRules -> mdbRules: BuildWhereClause(v_strSQLKeyWord, current_column, current_value, v_blnDelimit)
+      activate mdbRules
+      mdbRules --> mdbRules: partial_where_clause
+      deactivate mdbRules
+      mdbRules -> mdbRules: Append partial_where_clause to l_strWhereClause
+    end
+  end
+end
+mdbRules --> Caller: Constructed MultiKey Where Clause
+deactivate mdbRules
+' Group: AddToErrorCollection
+Caller -> mdbRules: AddToErrorCollection(r_colErrArgs, v_varArgs, v_strArgName)
+activate mdbRules
+alt If v_varArgs is Missing or Empty
+  mdbRules -> ErrorCollection: Add(v_strArgName & " = empty")
+else If v_varArgs is an Array
+  mdbRules -> ErrorCollection: Add(v_strArgName & "() = (" & Join(v_varArgs, ", ") & ")")
+else
+  mdbRules -> ErrorCollection: Add(v_strArgName & " = " & v_varArgs)
+end
+mdbRules --> Caller:
+deactivate mdbRules
+@enduml

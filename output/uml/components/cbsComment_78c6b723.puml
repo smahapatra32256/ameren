@@ -1,0 +1,26 @@
+@startuml
+participant Caller
+participant cbsComment.cls
+participant dbComment.cdComment
+participant TrsRaiseError
+Caller -> cbsComment.cls: GetComment(v_aryEmpNum, v_dtStartDate, v_dtEndDate)
+activate cbsComment.cls
+alt No Error
+  cbsComment.cls -> dbComment.cdComment: CreateObject("dbComment.cdComment")
+  activate dbComment.cdComment
+  dbComment.cdComment --> cbsComment.cls: l_objComment instance
+  deactivate dbComment.cdComment
+  cbsComment.cls -> dbComment.cdComment: GetComment(v_aryEmpNum, v_dtStartDate, v_dtEndDate)
+  activate dbComment.cdComment
+  dbComment.cdComment --> cbsComment.cls: l_adrsComment (ADODB.Recordset)
+  deactivate dbComment.cdComment
+  cbsComment.cls --> Caller: l_adrsComment (ADODB.Recordset)
+else Error Occurred (GetComment_Err)
+  cbsComment.cls -> TrsRaiseError: TrsRaiseError(m_strCMODULENAME, "GetComment", ...)
+  activate TrsRaiseError
+  TrsRaiseError --> cbsComment.cls: Error Handled
+  deactivate TrsRaiseError
+  cbsComment.cls --> Caller: Nothing
+end
+deactivate cbsComment.cls
+@enduml

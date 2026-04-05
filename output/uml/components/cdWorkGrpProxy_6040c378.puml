@@ -1,0 +1,37 @@
+@startuml
+skinparam sequenceMessageAlign center
+participant Caller
+participant "cdWorkGrpProxy.cls" as Proxy
+participant "dbWorkGroup.cdWorkGroup" as DBWorkGroup
+participant "TrsErrorSystem" as ErrorHandler
+box "cdWorkGrpProxy" #LightBlue
+    activate Proxy
+    group GetWorkGroup
+        Caller -> Proxy: GetWorkGroup(v_lngEmpNum, v_datStartDate, v_datEndDate)
+        activate Proxy
+        Proxy -> DBWorkGroup: CreateObject("dbWorkGroup.cdWorkGroup")
+        activate DBWorkGroup
+        Proxy -> DBWorkGroup: GetWorkGroup(v_lngEmpNum, v_datStartDate, v_datEndDate)
+        activate DBWorkGroup
+        DBWorkGroup --> Proxy: ADODB.Recordset
+        deactivate DBWorkGroup
+        Proxy --> Caller: ADODB.Recordset
+        deactivate Proxy
+        deactivate DBWorkGroup
+        alt On Error
+            Proxy -> ErrorHandler: TrsRaiseError("dbWorkGroup.cdWorkGroup", "GetWorkGroup", ...)
+            activate ErrorHandler
+            ErrorHandler --> Proxy: Error raised
+            deactivate ErrorHandler
+        end
+    end
+    group GetAccounting
+        Caller -> Proxy: GetAccounting(v_lngWgNum)
+        activate Proxy
+        Proxy -> DBWorkGroup: CreateObject()
+        activate DBWorkGroup
+        DBWorkGroup --> Proxy: Object created
+        deactivate DBWorkGroup
+        alt On Error
+            Proxy ->
+@enduml

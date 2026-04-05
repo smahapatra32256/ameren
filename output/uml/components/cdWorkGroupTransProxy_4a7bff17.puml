@@ -1,0 +1,100 @@
+@startuml
+participant Caller
+participant "cdWorkGroupTransProxy.cls"
+participant "dbWorkGroup.cdWorkGroupTrans"
+participant TrsRaiseError
+group SaveWGAssignments
+  Caller -> "cdWorkGroupTransProxy.cls": SaveWGAssignments(v_rsWGAssignments, v_rsAdjPrimaries)
+  activate "cdWorkGroupTransProxy.cls"
+  "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": CreateObject("dbWorkGroup.cdWorkGroupTrans")
+  activate "dbWorkGroup.cdWorkGroupTrans"
+  "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": Object instance
+  alt Operation successful
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": SaveWGAssignments(v_rsWGAssignments, v_rsAdjPrimaries)
+    "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": resultBoolean
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": Release object (Set Nothing)
+    deactivate "dbWorkGroup.cdWorkGroupTrans"
+    "cdWorkGroupTransProxy.cls" --> Caller: resultBoolean
+  else Error occurred
+    "cdWorkGroupTransProxy.cls" -> TrsRaiseError: TrsRaiseError("dbWorkGroup.cdWorkGroupTrans", "SaveWGAssignments", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cdWorkGroupTransProxy.cls": Error raised
+    deactivate TrsRaiseError
+    "cdWorkGroupTransProxy.cls" --> Caller: False
+  end
+  deactivate "cdWorkGroupTransProxy.cls"
+end
+group SaveWGLineSchedules
+  Caller -> "cdWorkGroupTransProxy.cls": SaveWGLineSchedules(r_rsWGSchedules)
+  activate "cdWorkGroupTransProxy.cls"
+  "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": CreateObject("dbWorkGroup.cdWorkGroupTrans")
+  activate "dbWorkGroup.cdWorkGroupTrans"
+  "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": l_objcdWorkGroupTrans instance
+  alt Object created successfully
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": SaveWGLineSchedules(r_rsWGSchedules)
+    "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": resultBoolean
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": Set Nothing
+    deactivate "dbWorkGroup.cdWorkGroupTrans"
+    "cdWorkGroupTransProxy.cls" --> Caller: resultBoolean
+  else Error occurred
+    "cdWorkGroupTransProxy.cls" -> TrsRaiseError: TrsRaiseError("dbWorkGroup.cdWorkGroupTrans", "SaveWGLineSchedules", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cdWorkGroupTransProxy.cls": Error raised
+    deactivate TrsRaiseError
+    "cdWorkGroupTransProxy.cls" --> Caller: False
+  end
+  deactivate "cdWorkGroupTransProxy.cls"
+end
+group SaveWGBaseSchedules
+  Caller -> "cdWorkGroupTransProxy.cls": SaveWGBaseSchedules(r_rsWGSchedules)
+  activate "cdWorkGroupTransProxy.cls"
+  "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": CreateObject("dbWorkGroup.cdWorkGroupTrans")
+  activate "dbWorkGroup.cdWorkGroupTrans"
+  "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": Object created
+  alt Operation successful
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": SaveWGBaseSchedules(r_rsWGSchedules)
+    "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": result (Boolean)
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": Set l_objcdWorkGroupTrans = Nothing
+    deactivate "dbWorkGroup.cdWorkGroupTrans"
+    "cdWorkGroupTransProxy.cls" --> Caller: result (Boolean)
+  else Error Occurs
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": Set l_objcdWorkGroupTrans = Nothing
+    deactivate "dbWorkGroup.cdWorkGroupTrans"
+    "cdWorkGroupTransProxy.cls" -> TrsRaiseError: TrsRaiseError("dbWorkGroup.cdWorkGroupTrans", "SaveWGBaseSchedules", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cdWorkGroupTransProxy.cls": Error handled
+    deactivate TrsRaiseError
+    "cdWorkGroupTransProxy.cls" --> Caller: False
+  end
+  deactivate "cdWorkGroupTransProxy.cls"
+end
+group SaveWGAttributes
+  Caller -> "cdWorkGroupTransProxy.cls": SaveWGAttributes(v_rsWGAttributes, v_strUserId)
+  activate "cdWorkGroupTransProxy.cls"
+  "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": CreateObject("dbWorkGroup.cdWorkGroupTrans")
+  activate "dbWorkGroup.cdWorkGroupTrans"
+  "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": Object instance
+  alt No error occurred
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": SaveWGAttributes(v_rsWGAttributes, v_strUserId)
+    "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": resultBoolean
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": Set Nothing
+    deactivate "dbWorkGroup.cdWorkGroupTrans"
+    "cdWorkGroupTransProxy.cls" --> Caller: resultBoolean
+  else Error occurred
+    "cdWorkGroupTransProxy.cls" -> TrsRaiseError: TrsRaiseError("dbWorkGroup.cdWorkGroupTrans", "SaveWGAttributes", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cdWorkGroupTransProxy.cls": Error raised
+    deactivate TrsRaiseError
+    "cdWorkGroupTransProxy.cls" --> Caller: False
+  end
+  deactivate "cdWorkGroupTransProxy.cls"
+end
+group SaveWGDistribution
+  Caller -> "cdWorkGroupTransProxy.cls": SaveWGDistribution(v_rsWGDistribution)
+  activate "cdWorkGroupTransProxy.cls"
+  "cdWorkGroupTransProxy.cls" -> "dbWorkGroup.cdWorkGroupTrans": CreateObject("dbWorkGroup.cdWorkGroupTrans")
+  activate "dbWorkGroup.cdWorkGroupTrans"
+  "dbWorkGroup.cdWorkGroupTrans" --> "cdWorkGroupTransProxy.cls": Object instance
+  alt Operation successful
+    "cdWorkGroupTransProxy.cls" -> "dbWorkGroup
+@enduml

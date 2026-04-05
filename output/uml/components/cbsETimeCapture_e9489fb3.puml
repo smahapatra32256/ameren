@@ -1,0 +1,31 @@
+@startuml
+participant Caller
+participant "cbsETimeCapture.cls" as CBS
+participant "COM Runtime" as COMRUNTIME
+participant "dbETimeCapture.cdETimeCapture" as DBETIME
+participant "Ameren_TRIS_Server_COMIntegration2.TimeCapture" as TIME_CAPTURE
+participant "TrsRaiseError" as ERROR_HANDLER
+database Database
+== GetValidationResultsAsNewErrorset ==
+Caller -> CBS: GetValidationResultsAsNewErrorset(vlTimesheetId)
+activate CBS
+alt Successful execution
+    CBS -> COMRUNTIME: CreateObject("dbETimeCapture.cdETimeCapture")
+    activate COMRUNTIME
+    COMRUNTIME --> CBS: dbETimeCapture.cdETimeCapture object
+    deactivate COMRUNTIME
+    CBS -> DBETIME: GetValidationResultsAsNewErrorset(vlTimesheetId)
+    activate DBETIME
+    DBETIME --> CBS: ADODB.Recordset object
+    deactivate DBETIME
+    CBS --> Caller: ADODB.Recordset object
+else Error occurs
+    CBS -> ERROR_HANDLER: TrsRaiseError(m_strCMODULENAME, "GetValidationResultsAsNewErrorset", DescArgsFrom(...))
+    activate ERROR_HANDLER
+    ERROR_HANDLER --> CBS: Error handled/re-raised
+    deactivate ERROR_HANDLER
+    CBS --> Caller: Error
+end
+deactivate CBS
+== GetTimeCaptureAndConvertToActual
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+participant Caller
+participant "cbsETimeCaptureTrans.cls"
+participant "dbETimeCapture.cdETimeCaptureTrans"
+database DB
+group UpdateTimeCaptureStatus
+  Caller -> "cbsETimeCaptureTrans.cls": UpdateTimeCaptureStatus(vdblTimesheetId, vlngLastModEmpNum, vstrLastModTimestamp, vintNewStatus, vlngNewLastModEmpNum, rlngUpdatedLastModEmpNum, rstrUpdatedLastModTimestamp)
+  activate "cbsETimeCaptureTrans.cls"
+  alt No Error
+    "cbsETimeCaptureTrans.cls" -> "dbETimeCapture.cdETimeCaptureTrans": CreateObject("dbETimeCapture.cdETimeCaptureTrans")
+    activate "dbETimeCapture.cdETimeCaptureTrans"
+    "dbETimeCapture.cdETimeCaptureTrans" --> "cbsETimeCaptureTrans.cls": Object created
+    "cbsETimeCaptureTrans.cls" -> "dbETimeCapture.cdETimeCaptureTrans": UpdateTimeCaptureStatusInDB(vdblTimesheetId, vintNewStatus, vlngNewLastModEmpNum)
+    "dbETimeCapture.cdETimeCaptureTrans" -> DB: Execute Update Query
+    activate DB
+    DB --> "dbETimeCapture.cdETimeCaptureTrans": Query Result
+    deactivate DB
+    "dbETimeCapture.cdETimeCaptureTrans" --> "cbsETimeCaptureTrans.cls": Update Result
+    deactivate "dbETimeCapture.cdETimeCaptureTrans"
+  else Error
+    "cbsETimeCaptureTrans.cls" --> Caller: Error message
+  end
+  "cbsETimeCaptureTrans.cls" --> Caller: rlngUpdatedLastModEmpNum, rstrUpdatedLastModTimestamp
+  deactivate "cbsETimeCaptureTrans.cls"
+end
+@enduml

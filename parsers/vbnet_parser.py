@@ -1,4 +1,4 @@
-﻿import hashlib
+import hashlib
 import os
 import re
 import sqlite3
@@ -26,8 +26,14 @@ class VBNetParser:
         self.db_path = db_path
         self._init_db()
 
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA journal_mode=MEMORY")
+        conn.execute("PRAGMA temp_store=MEMORY")
+        return conn
+
     def _init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 '''
@@ -233,7 +239,7 @@ class VBNetParser:
         return result
 
     def save_chunks(self, file_path: str, chunks: List[Dict]):
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id, content_hash FROM CodeChunks WHERE file_path = ?", (file_path,))
             existing = {row[0]: row[1] for row in cursor.fetchall()}
@@ -345,13 +351,20 @@ class VBNetParser:
                             if lowered.startswith(direct_call_control_prefixes):
                                 continue
                             callee = match.group(1)
+                            # Ignore array/variable assignments that look like calls:
+                            # Example: foo(i) = value
+                            if "=" in code_line:
+                                left_of_equal = code_line.split("=", 1)[0].strip().lower()
+                                callee_call = f"{callee.lower()}("
+                                if left_of_equal.startswith(callee_call) or left_of_equal == callee.lower():
+                                    continue
 
                         if not self._is_valid_callee(callee):
                             continue
 
                         rows.add((file_path, chunk["name"], chunk["type"], callee, code_line))
 
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM CallGraph WHERE caller_file = ?", (file_path,))
             if rows:

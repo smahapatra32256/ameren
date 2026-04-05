@@ -1,0 +1,60 @@
+@startuml
+participant Caller
+participant "cbsRotTransProxy.cls" as Proxy
+participant "busSchedRotation.cbsSchedRotationTrans" as BusSchedRotation
+participant TrsRaiseError
+group RecordRotation
+  Caller -> Proxy: RecordRotation(r_rsScheduleRotationRequest, r_rsScheduleRotationDetailRequest, v_lngUserId, r_rsErrors)
+  activate Proxy
+  alt No Error
+    Proxy -> BusSchedRotation: CreateObject("busSchedRotation.cbsSchedRotationTrans")
+    activate BusSchedRotation
+    BusSchedRotation --> Proxy: Object instance
+    deactivate BusSchedRotation
+    Proxy -> BusSchedRotation: RecordRotation(r_rsScheduleRotationRequest, r_rsScheduleRotationDetailRequest, v_lngUserId, r_rsErrors)
+    activate BusSchedRotation
+    BusSchedRotation --> Proxy: Result
+    deactivate BusSchedRotation
+    Proxy -> BusSchedRotation: Release object reference
+  end
+  Proxy --> Caller: Result
+  deactivate Proxy
+end
+group IsRotDetPatternExists
+  Caller -> Proxy: IsRotDetPatternExists(r_rsScheduleRotationRequest, r_rsScheduleRotationDetailRequest)
+  activate Proxy
+  alt No error occurs
+    Proxy -> BusSchedRotation: Instantiate cbsSchedRotationTrans object
+    activate BusSchedRotation
+    BusSchedRotation --> Proxy: Object created
+    deactivate BusSchedRotation
+    Proxy -> BusSchedRotation: IsRotDetPatternExists(r_rsScheduleRotationRequest, r_rsScheduleRotationDetailRequest)
+    activate BusSchedRotation
+    BusSchedRotation --> Proxy: Boolean result
+    deactivate BusSchedRotation
+    Proxy -> BusSchedRotation: Release object reference
+  end
+  Proxy --> Caller: Boolean result
+  deactivate Proxy
+end
+group MultiRecordRotation
+  Caller -> Proxy: MultiRecordRotation(r_rsScheduleRotationRequest, r_rsScheduleRotationDetailRequest, v_lngUserId, r_rsErrors)
+  activate Proxy
+  Proxy -> BusSchedRotation: Instantiate cbsSchedRotationTrans
+  alt Error occurs during instantiation or method call
+    Proxy -> BusSchedRotation: Release object reference
+    Proxy -> TrsRaiseError: Raise Error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised
+    deactivate TrsRaiseError
+  else No error
+    Proxy -> BusSchedRotation: MultiRecordRotation(r_rsScheduleRotationRequest, r_rsScheduleRotationDetailRequest, v_lngUserId, r_rsErrors)
+    activate BusSchedRotation
+    BusSchedRotation --> Proxy: Boolean result
+    deactivate BusSchedRotation
+    Proxy -> BusSchedRotation: Release object reference
+  end
+  Proxy --> Caller: Boolean result
+  deactivate Proxy
+end
+@enduml

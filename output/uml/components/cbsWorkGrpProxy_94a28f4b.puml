@@ -1,0 +1,22 @@
+@startuml
+!pragma layout smetana
+participant Caller
+participant "cbsWorkGrpProxy.cls"
+participant "busWorkGroup.cbsWorkGroup"
+participant "COM Runtime"
+participant TrsRaiseError
+box "cbsWorkGrpProxy Methods"
+  Caller -> "cbsWorkGrpProxy.cls": GetWorkGroup(v_lngEmpNum, v_datStartDate, v_datEndDate)
+  activate "cbsWorkGrpProxy.cls"
+  alt Successful execution
+    "cbsWorkGrpProxy.cls" -> "busWorkGroup.cbsWorkGroup": CreateObject("busWorkGroup.cbsWorkGroup")
+    activate "busWorkGroup.cbsWorkGroup"
+    "busWorkGroup.cbsWorkGroup" --> "cbsWorkGrpProxy.cls": Object reference
+    "cbsWorkGrpProxy.cls" -> "busWorkGroup.cbsWorkGroup": GetWorkGroup(v_lngEmpNum, v_datStartDate, v_datEndDate)
+    "busWorkGroup.cbsWorkGroup" --> "cbsWorkGrpProxy.cls": ADODB.Recordset
+    deactivate "busWorkGroup.cbsWorkGroup"
+    "cbsWorkGrpProxy.cls" --> Caller: ADODB.Recordset
+  else Error during execution
+    "cbsWorkGrpProxy.cls" -> TrsRaiseError: Raise Error ("busWorkGroup.cbsWorkGroup", "GetWorkGroup")
+    activate TrsRaiseError
+@enduml

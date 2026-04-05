@@ -1,0 +1,25 @@
+@startuml
+participant Caller
+participant "cbsCommentTran.cls"
+participant BusinessErrorSet
+participant "dbEmployee.cdEmployee"
+Caller -> "cbsCommentTran.cls": SaveComment(v_rsSaveComment, r_rsErrors, v_lTRISUser)
+activate "cbsCommentTran.cls"
+"cbsCommentTran.cls" -> BusinessErrorSet: CreateNewBusinessErrorSet()
+activate BusinessErrorSet
+BusinessErrorSet --> "cbsCommentTran.cls": r_rsErrors Recordset
+deactivate BusinessErrorSet
+"cbsCommentTran.cls" -> "cbsCommentTran.cls": ValidateComment(v_rsSaveComment, r_rsErrors)
+activate "cbsCommentTran.cls"
+"cbsCommentTran.cls" -> "cbsCommentTran.cls": Initialize variables, set error handler
+"cbsCommentTran.cls" -> "cbsCommentTran.cls": Set ValidateComment = False
+"cbsCommentTran.cls" -> "cbsCommentTran.cls": Check RecordsExist(v_rsSaveComment)
+alt RecordsExist(v_rsSaveComment) is true
+  "cbsCommentTran.cls" -> "dbEmployee.cdEmployee": CreateObject("dbEmployee.cdEmployee")
+  activate "dbEmployee.cdEmployee"
+  "dbEmployee.cdEmployee" --> "cbsCommentTran.cls"
+  deactivate "dbEmployee.cdEmployee"
+end
+deactivate "cbsCommentTran.cls"
+deactivate "cbsCommentTran.cls"
+@enduml

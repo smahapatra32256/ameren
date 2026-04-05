@@ -1,0 +1,68 @@
+@startuml
+participant Caller
+participant cboEMail
+box "cboEMail Property Interactions"
+  Caller -> cboEMail: Set From(v_sFrom)
+  activate cboEMail
+  cboEMail --> Caller:
+  deactivate cboEMail
+  Caller -> cboEMail: Get From property
+  activate cboEMail
+  cboEMail --> Caller: Return m_sFrom value
+  deactivate cboEMail
+  Caller -> cboEMail: To__let(v_sTo)
+  activate cboEMail
+  note over cboEMail: Assign v_sTo to m_sTo
+  cboEMail --> Caller: Property set
+  deactivate cboEMail
+  Caller -> cboEMail: Get To_()
+  activate cboEMail
+  cboEMail --> Caller: m_sTo
+  deactivate cboEMail
+  Caller -> cboEMail: CC_let(v_sCC)
+  activate cboEMail
+  note right of cboEMail: Assign v_sCC to internal member m_sCC
+  cboEMail --> Caller:
+  deactivate cboEMail
+  Caller -> cboEMail: Get CC Property
+  activate cboEMail
+  cboEMail --> Caller: m_sCC value
+  deactivate cboEMail
+  Caller -> cboEMail: Set BCC property with v_sBCC
+  activate cboEMail
+  cboEMail -> cboEMail: Assign v_sBCC to m_sBCC
+  cboEMail --> Caller:
+  deactivate cboEMail
+  Caller -> cboEMail: Get BCC Property
+  activate cboEMail
+  cboEMail --> Caller: Value of m_sBCC
+  deactivate cboEMail
+  Caller -> cboEMail: Set Subject(v_sSubject)
+  activate cboEMail
+  cboEMail -> cboEMail: Assign v_sSubject to m_sSubject
+  cboEMail --> Caller:
+  deactivate cboEMail
+  Caller -> cboEMail: Get Subject property
+  activate cboEMail
+  cboEMail --> Caller: Value of m_sSubject
+  deactivate cboEMail
+  Caller -> cboEMail: Set TextBody(v_sTextBody)
+  activate cboEMail
+  cboEMail -> cboEMail: Assign v_sTextBody to m_sTextBody
+  cboEMail --> Caller:
+  deactivate cboEMail
+  Caller -> cboEMail: Get TextBody
+  activate cboEMail
+  cboEMail --> Caller: m_sTextBody value
+  deactivate cboEMail
+  Caller -> cboEMail: HTMLBody_let(v_sHTMLBody)
+  activate cboEMail
+  cboEMail -> cboEMail: Assign v_sHTMLBody to m_sHTMLBody
+  cboEMail --> Caller:
+  deactivate cboEMail
+  Caller -> cboEMail: Get HTMLBody
+  activate cboEMail
+  cboEMail --> Caller: m_sHTMLBody value
+  deactivate cboEMail
+end box
+@enduml

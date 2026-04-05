@@ -1,0 +1,152 @@
+@startuml
+participant Caller
+participant "cbsEnvironmentTrans.cls" as cbsEnvTrans
+participant "dbEnvironment.cdEnvironmentTrans" as dbEnvTrans
+participant "COM+ Context" as COMPlusContext
+participant "TrsRaiseError" as ErrorHandler
+database "Database" as DB
+participant "busEnvironment.cbsEnvironmentTrans2" as cbsEnvTrans2
+group DoesUserPreferenceExist
+  Caller -> cbsEnvTrans: DoesUserPreferenceExist(v_lngEmpNum, v_eTypeCd, v_strOtherTypeCd)
+  activate cbsEnvTrans
+  critical Transaction Scope
+    cbsEnvTrans -> dbEnvTrans: CreateObject("dbEnvironment.cdEnvironmentTrans")
+    activate dbEnvTrans
+    alt v_eTypeCd <> PreferenceTypeCode.Other
+      cbsEnvTrans -> cbsEnvTrans: Determine strTypeCd from v_eTypeCd
+    else
+      cbsEnvTrans -> cbsEnvTrans: Use v_strOtherTypeCd for strTypeCd
+    end
+    cbsEnvTrans -> dbEnvTrans: DoesUserPreferenceExist(v_lngEmpNum, strTypeCd)
+    dbEnvTrans --> cbsEnvTrans: Boolean result
+    cbsEnvTrans -> dbEnvTrans: Set Nothing
+    deactivate dbEnvTrans
+    cbsEnvTrans -> COMPlusContext: SetComplete()
+    activate COMPlusContext
+    COMPlusContext --> cbsEnvTrans:
+    deactivate COMPlusContext
+    cbsEnvTrans --> Caller: Boolean result
+  on failure eh
+    cbsEnvTrans -> COMPlusContext: SetAbort()
+    activate COMPlusContext
+    COMPlusContext --> cbsEnvTrans:
+    deactivate COMPlusContext
+    cbsEnvTrans -> ErrorHandler: Raise Error (MODULENAME, "DoesUserPreferenceExist", ...)
+    activate ErrorHandler
+    ErrorHandler --> cbsEnvTrans:
+    deactivate ErrorHandler
+    cbsEnvTrans --> Caller: Error
+  end critical
+  deactivate cbsEnvTrans
+end
+group GetUserPreference
+  Caller -> cbsEnvTrans: GetUserPreference(v_lngEmpNum, v_eTypeCd, v_strOtherTypeCd)
+  activate cbsEnvTrans
+  alt No error occurs
+    cbsEnvTrans -> dbEnvTrans: Instantiate dbEnvironment.cdEnvironmentTrans
+    activate dbEnvTrans
+    alt v_eTypeCd <> PreferenceTypeCode.Other
+      cbsEnvTrans -> cbsEnvTrans: Convert PreferenceTypeCode to string
+    else
+      cbsEnvTrans -> cbsEnvTrans: Use v_strOtherTypeCd
+    end
+    cbsEnvTrans -> dbEnvTrans: GetUserPreference(v_lngEmpNum, strTypeCd)
+    dbEnvTrans --> cbsEnvTrans: ADODB.Recordset
+    deactivate dbEnvTrans
+    cbsEnvTrans -> cbsEnvTrans: RemoveCaseNumberPreference(recordset)
+    cbsEnvTrans -> COMPlusContext: SetComplete
+    activate COMPlusContext
+    COMPlusContext --> cbsEnvTrans:
+    deactivate COMPlusContext
+    cbsEnvTrans --> Caller: ADODB.Recordset
+  else Error occurs
+    cbsEnvTrans -> COMPlusContext: SetAbort
+    activate COMPlusContext
+    COMPlusContext --> cbsEnvTrans:
+    deactivate COMPlusContext
+    cbsEnvTrans -> ErrorHandler: Raise application error
+    activate ErrorHandler
+    ErrorHandler --> cbsEnvTrans:
+    deactivate ErrorHandler
+  end
+  deactivate cbsEnvTrans
+end
+group GetUserPreferenceDefault
+  Caller -> cbsEnvTrans: GetUserPreferenceDefault(v_eTypeCd, v_strOtherTypeCd)
+  activate cbsEnvTrans
+  cbsEnvTrans -> dbEnvTrans: CreateObject("dbEnvironment.cdEnvironmentTrans")
+  activate dbEnvTrans
+  deactivate dbEnvTrans
+  alt v_eTypeCd <> PreferenceTypeCode.Other
+    cbsEnvTrans -> cbsEnvTrans: PreferenceTypeCodeToString(v_eTypeCd)
+  else
+    cbsEnvTrans -> cbsEnvTrans: Use v_strOtherTypeCd
+  end
+  cbsEnvTrans -> dbEnvTrans: GetUserPreference(m_lngKeyForDefault, strTypeCd)
+  activate dbEnvTrans
+  dbEnvTrans -> DB: Execute Query for User Preference
+  activate DB
+  DB --> dbEnvTrans: ADODB.Recordset
+  deactivate DB
+  dbEnvTrans --> cbsEnvTrans: ADODB.Recordset
+  deactivate dbEnvTrans
+  cbsEnvTrans -> cbsEnvTrans: Release dbEnvTrans object
+  cbsEnvTrans -> cbsEnvTrans: RemoveCaseNumberPreference(recordset)
+  cbsEnvTrans -> COMPlusContext: GetObjectContext.SetComplete
+  COMPlusContext --> cbsEnvTrans:
+  cbsEnvTrans --> Caller: ADODB.Recordset
+  deactivate cbsEnvTrans
+alt On Error
+  cbsEnvTrans -> COMPlusContext: GetObjectContext.SetAbort
+  COMPlusContext --> cbsEnvTrans:
+  cbsEnvTrans -> ErrorHandler: TrsRaiseError(MODULENAME, "GetUserPreferenceDefault", ...)
+  ErrorHandler --> cbsEnvTrans: Error Raised
+  deactivate cbsEnvTrans
+end
+group RemoveCaseNumberPreference
+  Caller -> cbsEnvTrans: RemoveCaseNumberPreference(radrs)
+  activate cbsEnvTrans
+  alt radrs Is Nothing
+    cbsEnvTrans --> Caller: Exit Sub
+  else radrs Is Not Nothing
+    alt radrs.BOF And radrs.EOF
+      cbsEnvTrans --> Caller: Exit Sub
+    else Recordset is not empty
+      cbsEnvTrans -> cbsEnvTrans: Check for 'SECTION' and 'KEY' fields in radrs metadata
+      alt 'SECTION' and 'KEY' fields exist
+        cbsEnvTrans -> cbsEnvTrans: Process recordset fields
+      else 'SECTION' or 'KEY' fields do not exist
+        cbsEnvTrans -> cbsEnvTrans: No processing needed
+      end
+    end
+  end
+  deactivate cbsEnvTrans
+end
+group SetUserPreference
+  Caller -> cbsEnvTrans: SetUserPreference(v_lngEmpNum, v_eTypeCd, v_strOtherTypeCd, v_rsPreference)
+  activate cbsEnvTrans
+  alt Successful execution
+    cbsEnvTrans -> cbsEnvTrans2: CreateObject("busEnvironment.cbsEnvironmentTrans2")
+    activate cbsEnvTrans2
+    cbsEnvTrans -> cbsEnvTrans2: SetUserPreference(v_lngEmpNum, v_eTypeCd, v_strOtherTypeCd, v_rsPreference)
+    cbsEnvTrans2 --> cbsEnvTrans: result (Boolean)
+    deactivate cbsEnvTrans2
+    cbsEnvTrans -> COMPlusContext: SetComplete()
+    activate COMPlusContext
+    COMPlusContext --> cbsEnvTrans:
+    deactivate COMPlusContext
+    cbsEnvTrans --> Caller: result (Boolean)
+  else Error occurs
+    cbsEnvTrans -> COMPlusContext: SetAbort()
+    activate COMPlusContext
+    COMPlusContext --> cbsEnvTrans:
+    deactivate COMPlusContext
+    cbsEnvTrans -> ErrorHandler: Raise Error (MODULENAME, "SetUserPreference", ...)
+    activate ErrorHandler
+    ErrorHandler --> cbsEnvTrans:
+    deactivate ErrorHandler
+    cbsEnvTrans --> Caller: Error
+  end
+  deactivate cbsEnvTrans
+end
+@enduml

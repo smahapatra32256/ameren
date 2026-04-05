@@ -1,0 +1,279 @@
+@startuml
+participant Client
+participant Caller
+participant CExRecordset
+participant CExProperties
+participant Collection
+participant cuContainer
+participant ErrorHandler as "Error Handler"
+participant Database
+participant CExField
+Client -> CExRecordset: Class_Initialize()
+activate CExRecordset
+CExRecordset -> CExProperties: New()
+activate CExProperties
+CExProperties --> CExRecordset: CExProperties instance
+deactivate CExProperties
+CExRecordset -> Collection: New()
+activate Collection
+Collection --> CExRecordset: Collection instance
+deactivate Collection
+CExRecordset -> CExRecordset: Set mblnOptimisticLocking = False
+deactivate CExRecordset
+Caller -> CExRecordset: Properties()
+activate CExRecordset
+CExRecordset --> Caller: mcolProperties
+deactivate CExRecordset
+Caller -> CExRecordset: SetTableName(v_strData)
+activate CExRecordset
+CExRecordset -> CExRecordset: Add "TABLENAME" with v_strData to Properties collection
+CExRecordset --> Caller:
+deactivate CExRecordset
+Caller -> CExRecordset: SetTableOwner(v_strData)
+activate CExRecordset
+CExRecordset -> CExRecordset: Add "TABLEOWNER" to Properties collection with v_strData
+CExRecordset --> Caller:
+deactivate CExRecordset
+Caller -> CExRecordset: GetTableName()
+activate CExRecordset
+CExRecordset -> CExRecordset: Retrieve "TABLENAME" from Properties collection
+CExRecordset --> CExRecordset: l_varName = retrieved value
+alt If l_varName is not empty
+  CExRecordset --> Caller: Return l_varName
+else If l_varName is empty
+  CExRecordset --> Caller: Return "" (default)
+end
+deactivate CExRecordset
+Caller -> CExRecordset: GetTableOwner()
+activate CExRecordset
+CExRecordset -> CExRecordset: Access Properties.Item("TABLEOWNER")
+alt If retrieved value is not empty
+  CExRecordset --> Caller: Return retrieved value
+else If retrieved value is empty
+  CExRecordset --> Caller: Return empty string
+end
+deactivate CExRecordset
+Caller -> CExRecordset: FullTableName()
+activate CExRecordset
+CExRecordset -> CExRecordset: Get TABLEOWNER from Properties
+CExRecordset -> CExRecordset: Get TABLENAME from Properties
+alt If TABLEOWNER is empty
+  CExRecordset -> CExRecordset: Initialize return string with CDEFAULTOWNER
+else
+  CExRecordset -> CExRecordset: Initialize return string with TABLEOWNER
+end
+alt If TABLENAME is not empty
+  CExRecordset -> CExRecordset: Append TABLENAME to return string
+end
+deactivate CExRecordset
+CExRecordset --> Caller: Constructed full table name
+Caller -> CExRecordset: SetFullTableName(v_strData)
+activate CExRecordset
+CExRecordset -> CExRecordset: Split v_strData by "." to get l_varOwnerName
+CExRecordset -> cuContainer: Instantiate cuContainer
+activate cuContainer
+cuContainer --> CExRecordset: l_objCommonLib instance
+deactivate cuContainer
+CExRecordset -> cuContainer: ArraySize(l_varOwnerName)
+activate cuContainer
+cuContainer --> CExRecordset: l_intSize
+deactivate cuContainer
+CExRecordset -> CExRecordset: Release l_objCommonLib reference
+alt l_intSize = 0
+  CExRecordset -> ErrorHandler: Raise Error: Table Name is empty string
+else alt l_intSize = 1
+  CExRecordset -> CExRecordset: SetTableOwner(CDEFAULTOWNER)
+  CExRecordset -> CExRecordset: SetTableName(table name from l_varOwnerName)
+else alt l_intSize = 2
+  CExRecordset -> CExRecordset: SetTableOwner(owner name from l_varOwnerName)
+  CExRecordset -> CExRecordset: SetTableName(table name from l_varOwnerName)
+else
+  CExRecordset -> ErrorHandler: Raise Error: Table Name has more than 2 levels
+end
+deactivate CExRecordset
+Caller -> CExRecordset: Fields()
+activate CExRecordset
+CExRecordset --> Caller: mcolFields (Collection)
+deactivate CExRecordset
+Caller -> CExRecordset: Field(v_strFieldName)
+activate CExRecordset
+loop For Each l_objField In Fields
+  CExRecordset -> CExField: Get Name property
+  activate CExField
+  CExField --> CExRecordset: l_objField.Name
+  deactivate CExField
+  alt If l_objField.Name = v_strFieldName
+    CExRecordset --> CExRecordset: Set Field return value to l_objField
+    break Loop exited early
+  else No match
+    CExRecordset --> CExRecordset: Continue iteration
+  end
+end
+CExRecordset --> Caller: CExField (found or Nothing)
+deactivate CExRecordset
+Caller -> CExRecordset: AddFieldBasic(v_strFieldName)
+activate CExRecordset
+CExRecordset -> CExRecordset: Get Field(v_strFieldName)
+alt Field not found (l_objField Is Nothing)
+  CExRecordset -> CExField: New()
+  activate CExField
+  CExField --> CExRecordset: New CExField object
+  deactivate CExField
+  CExRecordset -> CExField: Set Name = v_strFieldName
+  CExRecordset -> Collection: Add(l_objField)
+end
+CExRecordset --> Caller: l_objField
+deactivate CExRecordset
+Caller -> CExRecordset: AddField(v_strFieldName, v_varPropertyNames, v_varPropertyValues)
+activate CExRecordset
+CExRecordset -> CExRecordset: AddFieldBasic(v_strFieldName)
+activate CExRecordset
+CExRecordset --> CExRecordset: l_objField (CExField)
+deactivate CExRecordset
+CExRecordset -> CExField: Get Properties
+activate CExField
+CExField --> CExRecordset: l_objProperties (CExProperties)
+deactivate CExField
+loop For each property name and value
+  CExRecordset -> CExProperties: Add(v_varPropertyNames(i), v_varPropertyValues(i))
+  activate CExProperties
+  CExProperties --> CExRecordset: Property added
+  deactivate CExProperties
+  alt If v_varPropertyNames(i) = "SETCURRENTTIMESTAMP"
+    alt If v_varPropertyValues(i) = TrSetTSAlways
+      CExRecordset -> CExProperties: Add("IGNORESOLEUPDATE", True)
+      activate CExProperties
+      CExProperties --> CExRecordset: Property added
+      deactivate CExProperties
+    else If v_varPropertyValues(i) = TrSetTSTouch
+      CExRecordset -> CExProperties: Add("IGNORESOLEUPDATE", False)
+      activate CExProperties
+      CExProperties --> CExRecordset: Property added
+      deactivate CExProperties
+    end
+  end
+  alt If v_varPropertyNames(i) = "PRIMARYKEY"
+    CExRecordset -> CExRecordset: InitializePrimaryKeyCache()
+    activate CExRecordset
+    CExRecordset --> CExRecordset: Cache initialized
+    deactivate CExRecordset
+  end
+  alt If v_varPropertyNames(i) = "CONCURRENCYKEY"
+    CExRecordset -> CExRecordset: Set mblnOptimisticLocking = True
+    CExRecordset -> CExProperties: Add("SETCURRENTTIMESTAMP", TrSetTSAlways)
+    activate CExProperties
+    CExProperties --> CExRecordset: Property added
+    deactivate CExProperties
+    CExRecordset -> CExProperties: Add("IGNORESOLEUPDATE", True)
+    activate CExProperties
+    CExProperties --> CExRecordset: Property added
+    deactivate CExProperties
+  end
+  alt If v_varPropertyNames(i) = "USECLIENTCONCURRENCYKEY"
+    alt If v_varPropertyValues(i) is True
+      CExRecordset -> CExProperties: Add("CONCURRENCYKEY", True)
+      activate CExProperties
+      CExProperties --> CExRecordset: Property added
+      deactivate CExProperties
+    end
+  end
+end
+deactivate CExRecordset
+Caller -> CExRecordset: AddFields(v_strPropertyName, v_varPropertyValue, v_varFieldNames)
+activate CExRecordset
+loop For each field name in v_varFieldNames
+  CExRecordset -> CExRecordset: AddFieldBasic(fieldName)
+  activate CExRecordset
+  CExRecordset --> CExRecordset: l_objField
+  deactivate CExRecordset
+  CExRecordset -> CExField: Get Properties
+  activate CExField
+  CExField --> CExRecordset: l_objProperties
+  deactivate CExField
+  CExRecordset -> CExProperties: Add(v_strPropertyName, v_varPropertyValue)
+  activate CExProperties
+  CExProperties --> CExRecordset:
+  deactivate CExProperties
+  alt v_strPropertyName = "SETCURRENTTIMESTAMP"
+    alt v_varPropertyValue = TrSetTSAlways
+      CExRecordset -> CExProperties: Add("IGNORESOLEUPDATE", True)
+      activate CExProperties
+      CExProperties --> CExRecordset:
+      deactivate CExProperties
+    else v_varPropertyValue = TrSetTSTouch
+      CExRecordset -> CExProperties: Add("IGNORESOLEUPDATE", False)
+      activate CExProperties
+      CExProperties --> CExRecordset:
+      deactivate CExProperties
+    end
+  end
+  alt v_strPropertyName = "USECLIENTCONCURRENCYKEY"
+    alt v_varPropertyValue is True
+      CExRecordset -> CExProperties: Add("CONCURRENCYKEY", True)
+      activate CExProperties
+      CExProperties --> CExRecordset:
+      deactivate CExProperties
+    end
+  end
+  alt v_strPropertyName = "CONCURRENCYKEY"
+    CExRecordset -> CExProperties: Add("SETCURRENTTIMESTAMP", TrSetTSAlways)
+    activate CExProperties
+    CExProperties --> CExRecordset:
+    deactivate CExProperties
+  end
+end
+alt v_strPropertyName = "PRIMARYKEY"
+  CExRecordset -> CExRecordset: InitializePrimaryKeyCache()
+  activate CExRecordset
+  CExRecordset --> CExRecordset:
+  deactivate CExRecordset
+end
+alt v_strPropertyName = "CONCURRENCYKEY"
+  CExRecordset -> CExRecordset: Set mblnOptimisticLocking = True
+end
+deactivate CExRecordset
+Caller -> CExRecordset: UseClientConcurrencyKey(v_strFieldName)
+activate CExRecordset
+CExRecordset -> CExRecordset: Retrieve CExField object by name
+CExRecordset --> CExRecordset: l_objField
+alt l_objField is not Nothing
+  CExRecordset -> CExField: Get UseClientConcurrencyKey property
+  activate CExField
+  CExField --> CExRecordset: FieldConcurrencyKey value
+  deactivate CExField
+  CExRecordset --> Caller: FieldConcurrencyKey value
+else l_objField is Nothing
+  CExRecordset --> Caller: False
+end
+deactivate CExRecordset
+Caller -> CExRecordset: IsPrimaryKeyCacheBuilt()
+activate CExRecordset
+CExRecordset -> CExRecordset: Evaluate Not IsEmpty(mvarPrimaryKeys)
+CExRecordset --> Caller: Boolean result
+deactivate CExRecordset
+Caller -> CExRecordset: InitializePrimaryKeyCache()
+activate CExRecordset
+CExRecordset -> CExRecordset: Set mvarPrimaryKeys to Empty
+deactivate CExRecordset
+Caller -> CExRecordset: BuildPrimaryKeyCache()
+activate CExRecordset
+CExRecordset -> Collection: Instantiate new Collection
+activate Collection
+loop For Each l_objField In Fields
+  CExRecordset -> CExField: Check IsPrimaryKey property
+  activate CExField
+  CExField --> CExRecordset: IsPrimaryKey status
+  deactivate CExField
+  alt If l_objField.IsPrimaryKey is true
+    CExRecordset -> Collection: Add field name l_objField.Name
+  end
+end
+CExRecordset -> cuContainer: Instantiate new cuContainer
+activate cuContainer
+CExRecordset -> cuContainer: Call ArrayFromCollection(l_colPrimKeys)
+cuContainer --> CExRecordset: Return array of primary keys
+CExRecordset -> CExRecordset: Assign array to mvarPrimaryKeys
+CExRecordset -> cuContainer: Release instance
+deactivate cuContainer
+C
+@enduml

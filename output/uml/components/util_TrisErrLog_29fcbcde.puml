@@ -1,0 +1,26 @@
+@startuml
+participant Caller
+participant "util_TrisErrLog.cls"
+participant "Resource File System"
+participant "Error Object"
+participant "File System"
+participant FileSystemObject
+participant "VB.NET Runtime"
+participant "REGTool5.Registry"
+participant "COM+ Runtime"
+participant "COMAdmin.COMAdminCatalog Object"
+participant "System Date/Time"
+' Entry point: GetErrDescription
+Caller -> "util_TrisErrLog.cls": GetErrDescription(vlngAppErr, vcolDescriptionArgs)
+activate "util_TrisErrLog.cls"
+  "util_TrisErrLog.cls" -> "util_TrisErrLog.cls": Initializemvars()
+  activate "util_TrisErrLog.cls"
+  deactivate "util_TrisErrLog.cls"
+  "util_TrisErrLog.cls" -> "util_TrisErrLog.cls": ProcessResourceDesc(vlngAppErr, vcolDescriptionArgs)
+  activate "util_TrisErrLog.cls"
+  ' ProcessResourceDesc internal logic (from snippet 8)
+  alt Error occurs during execution
+    "util_TrisErrLog.cls" -> "util_TrisErrLog.cls": ProcessResourceDesc_EH
+    activate "util_TrisErrLog.cls"
+    "util_TrisErrLog.cls" -> "util_TrisErrLog.cls": Append error details to
+@enduml

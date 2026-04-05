@@ -1,0 +1,34 @@
+@startuml
+participant Caller
+participant cbsWorkGrpTransProxy
+participant cbsWorkGroupTrans
+participant TrsRaiseError
+Caller -> cbsWorkGrpTransProxy: ProcessSaveWorkGroup(v_rsWorkGroupAttributes, ..., r_blnDemandWorkGroup)
+activate cbsWorkGrpTransProxy
+alt Successful Execution
+  cbsWorkGrpTransProxy -> cbsWorkGroupTrans: CreateObject("busWorkGroup.cbsWorkGroupTrans")
+  activate cbsWorkGroupTrans
+  cbsWorkGroupTrans --> cbsWorkGrpTransProxy: Object instance created
+  deactivate cbsWorkGroupTrans
+  cbsWorkGrpTransProxy -> cbsWorkGroupTrans: ProcessSaveWorkGroup(v_rsWorkGroupAttributes, ..., r_blnDemandWorkGroup)
+  activate cbsWorkGroupTrans
+  cbsWorkGroupTrans --> cbsWorkGrpTransProxy: Result (Boolean)
+  deactivate cbsWorkGroupTrans
+  cbsWorkGrpTransProxy --> Caller: Result (Boolean)
+else Error Occurs
+  cbsWorkGrpTransProxy -> TrsRaiseError: Raise Error "busWorkGroup.cbsWorkGroupTrans", "ProcessSaveWorkGroup"
+  activate TrsRaiseError
+  TrsRaiseError --> cbsWorkGrpTransProxy: Error raised
+  deactivate TrsRaiseError
+end
+deactivate cbsWorkGrpTransProxy
+Caller -> cbsWorkGrpTransProxy: ResumeProcessSaveWorkGroup(r_lngWorkGroup, v_blnDemandWorkGroup, ..., r_rsErrors, v_UserId)
+activate cbsWorkGrpTransProxy
+cbsWorkGrpTransProxy -> cbsWorkGroupTrans: Request new instance (CreateObject)
+activate cbsWorkGroupTrans
+cbsWorkGroupTrans --> cbsWorkGrpTransProxy: l_objcbsWorkGroupTrans object
+deactivate cbsWorkGroupTrans
+alt On
+end
+deactivate cbsWorkGrpTransProxy
+@enduml

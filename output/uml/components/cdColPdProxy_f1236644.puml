@@ -1,0 +1,184 @@
+@startuml
+participant Caller
+participant "cdColPdProxy.cls" as Proxy
+participant "dbCollectionPeriod.cdCollectionPeriod" as CollectionPeriodObject
+participant "COM Runtime" as COM
+participant Database
+participant TrsRaiseError
+== GetCollectionPeriodStatusByPayGroup ==
+Caller -> Proxy: GetCollectionPeriodStatusByPayGroup(v_datDate, v_strPayrollCode)
+activate Proxy
+Proxy -> COM: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+activate COM
+COM --> Proxy: Object instance
+deactivate COM
+alt Successful execution
+    Proxy -> CollectionPeriodObject: GetCollectionPeriodStatusByPayGroup(v_datDate, v_strPayrollCode)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: Status
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: Status
+else Error during execution
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetCollectionPeriodStatusByPayGroup", ...
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== GetCollPerPayProcInd ==
+Caller -> Proxy: GetCollPerPayProcInd(v_datDate, v_strPayrollCode)
+activate Proxy
+Proxy -> COM: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+activate COM
+COM --> Proxy: Object instance
+deactivate COM
+alt Successful execution
+    Proxy -> CollectionPeriodObject: GetCollPerPayProcInd(v_datDate, v_strPayrollCode)
+    activate CollectionPeriodObject
+    CollectionPeriodObject -> Database: Query Collection Period Data
+    activate Database
+    Database --> CollectionPeriodObject: Data
+    deactivate Database
+    CollectionPeriodObject --> Proxy: Indicator
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: Indicator
+else Error during execution
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetCollPerPayProcInd", ...
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== GetPayProcIndInRange ==
+Caller -> Proxy: GetPayProcIndInRange(v_strPayrollGroupCode, v_datChargeDate)
+activate Proxy
+Proxy -> COM: Request object "dbCollectionPeriod.cdCollectionPeriod"
+activate COM
+COM --> Proxy: Instance of dbCollectionPeriod.cdCollectionPeriod
+deactivate COM
+alt Successful execution
+    Proxy -> CollectionPeriodObject: GetPayProcIndInRange(v_strPayrollGroupCode, v_datChargeDate)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: PayProcInd
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: PayProcInd
+else Error during execution
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetPayProcIndInRange", ...
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== GetCollectionPeriodLockStatus ==
+Caller -> Proxy: GetCollectionPeriodLockStatus(v_strDeptNum, v_strPrevDeptNum, v_datStartDate, v_datEndDate)
+activate Proxy
+Proxy -> COM: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+activate COM
+COM --> Proxy: l_objcdCollectionPeriod instance
+deactivate COM
+alt No error occurs
+    Proxy -> CollectionPeriodObject: GetCollectionPeriodLockStatus(v_strDeptNum, v_strPrevDeptNum, v_datStartDate, v_datEndDate)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: ADODB.Recordset
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: ADODB.Recordset
+else Error occurs
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetCollectionPeriodLockStatus"
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error handled
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== GetCollectionPeriods ==
+Caller -> Proxy: GetCollectionPeriods(v_datStartDate, v_datEndDate, v_strPayrollCodes)
+activate Proxy
+Proxy -> COM: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+activate COM
+COM --> Proxy: l_objcdCollectionPeriod instance
+deactivate COM
+alt Successful Execution
+    Proxy -> CollectionPeriodObject: GetCollectionPeriods(v_datStartDate, v_datEndDate, v_strPayrollCodes)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: ADODB.Recordset
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: ADODB.Recordset
+else Error Occurred
+    Proxy -> TrsRaiseError: Raise Error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+Proxy -> CollectionPeriodObject: Set Nothing
+deactivate Proxy
+== GetCollectionPeriodsByDepartment ==
+Caller -> Proxy: GetCollectionPeriodsByDepartment(v_strDeptNum, v_datStartDate, v_datEndDate)
+activate Proxy
+Proxy -> COM: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+activate COM
+COM --> Proxy: Object created
+deactivate COM
+alt Success
+    Proxy -> CollectionPeriodObject: GetCollectionPeriodsByDepartment(v_strDeptNum, v_datStartDate, v_datEndDate)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: ADODB.Recordset
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: ADODB.Recordset
+else On Error
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetCollectionPeriodsByDepartment"
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error handled
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== GetCollectionPeriodsByWorkGroup ==
+Caller -> Proxy: GetCollectionPeriodsByWorkGroup(v_lngWorkGroup, v_datStartDate, v_datEndDate)
+activate Proxy
+Proxy -> COM: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+activate COM
+COM --> Proxy: Object instance
+deactivate COM
+alt Successful execution
+    Proxy -> CollectionPeriodObject: GetCollectionPeriodsByWorkGroup(v_lngWorkGroup, v_datStartDate, v_datEndDate)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: ADODB.Recordset
+    deactivate CollectionPeriodObject
+    Proxy --> Caller: ADODB.Recordset
+else Error during execution
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetCollectionPeriodsByWorkGroup", ...
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== GetLatestProcessedPayPeriodEndDate ==
+Caller -> Proxy: GetLatestProcessedPayPeriodEndDate(v_strPayrollGroupCode)
+activate Proxy
+Proxy -> COM: Instantiate Object "dbCollectionPeriod.cdCollectionPeriod"
+activate COM
+COM --> Proxy: Object instance
+deactivate COM
+alt No error occurs
+    Proxy -> CollectionPeriodObject: GetLatestProcessedPayPeriodEndDate(v_strPayrollGroupCode)
+    activate CollectionPeriodObject
+    CollectionPeriodObject --> Proxy: PayPeriodEndDate
+    deactivate CollectionPeriodObject
+    Proxy -> CollectionPeriodObject: Release Object
+    Proxy --> Caller: PayPeriodEndDate
+else Error occurs
+    Proxy -> TrsRaiseError: Raise error "dbCollectionPeriod.cdCollectionPeriod", "GetLatestProcessedPayPeriodEndDate", ...
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error handled
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+end
+deactivate Proxy
+== PayPeriodStartDate ==
+Caller
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+participant Caller
+participant "cbsEmployeeTrans.cls" as cbsEmployeeTrans
+participant "Input Recordset" as InputRS
+participant "Error/BRV Recordset" as ErrorBRVRS
+participant "Internal ADODB.Recordset" as InternalADODB
+participant "System Date/Time" as System
+participant "Error Handler" as ErrorHandler
+participant "dbDepartment.cdDepartment" as dbDepartment
+participant "dbCodeTables.cdCodeTables" as dbCodeTables
+participant "External Database" as ExternalDB
+participant "stdmTRISCommon" as stdmTRISCommon
+participant "HelperFunctions" as HelperFunctions
+participant "dbEmployee.cdEmployee" as dbEmployee
+participant "dbEmployee.cdEmployeeTrans" as dbEmployeeTrans
+participant "RecordsExist Helper" as RecordsExistHelper
+group ProcessEmpQualsSkillsEntries
+  Caller -> cbsEmployeeTrans: ProcessEmpQualsSkillsEntries(vadrsQAndSInformation, radrsErrors, vlUserEmployeeNumber)
+  activate cbsEmployeeTrans
+  cbsEmployeeTrans -> InputRS: Check Is Nothing / BOF / EOF
+  activate InputRS
+  InputRS --> cbsEmployeeTrans: IsEmptyResult
+  deactivate InputRS
+  cbsEmployeeTrans -> cbsEmployeeTrans: CreateQAndSBRV()
+  activate cbsEmployeeTrans
+  cbsEmployeeTrans --> ErrorBRVRS: New Error Recordset
+  deactivate cbsEmployeeTrans
+  deactivate cbsEmployeeTrans
+end
+group Create
+@enduml

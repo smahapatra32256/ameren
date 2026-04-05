@@ -1,0 +1,40 @@
+@startuml
+participant Caller
+participant "cbsRotProxy" as cbsRotProxy
+participant "busSchedRotation" as busSchedRotation
+participant "Error Handler" as ErrorHandler
+group GetRotationSchedHeader
+  Caller -> cbsRotProxy: GetRotationSchedHeader(v_intRotationCode)
+  activate cbsRotProxy
+  alt Successful execution
+    cbsRotProxy -> busSchedRotation: CreateObject("busSchedRotation.cbsSchedRotation")
+    activate busSchedRotation
+    cbsRotProxy -> busSchedRotation: GetRotationSchedHeader(v_intRotationCode)
+    busSchedRotation --> cbsRotProxy: ADODB.Recordset
+    deactivate busSchedRotation
+    cbsRotProxy --> Caller: ADODB.Recordset
+  end
+  deactivate cbsRotProxy
+end
+group GetRotationSchedDetail
+  Caller -> cbsRotProxy: GetRotationSchedDetail(v_intRotationCode, v_intRotationWeek)
+  activate cbsRotProxy
+  alt Successful execution
+    cbsRotProxy -> busSchedRotation: Instantiate object
+    activate busSchedRotation
+    busSchedRotation --> cbsRotProxy: Object instance
+    deactivate busSchedRotation
+    cbsRotProxy -> busSchedRotation: GetRotationSchedDetail(v_intRotationCode, v_intRotationWeek)
+    activate busSchedRotation
+    busSchedRotation --> cbsRotProxy: ADODB.Recordset result
+    deactivate busSchedRotation
+    cbsRotProxy --> Caller: ADODB.Recordset
+  else Error occurs
+    cbsRotProxy -> ErrorHandler: TrsRaiseError("busSchedRotation.cbsSchedRotation", "GetRotationSchedDetail", ...)
+    activate ErrorHandler
+    ErrorHandler --> cbsRotProxy: Error reported
+    deactivate ErrorHandler
+  end
+  deactivate cbsRotProxy
+end
+@enduml

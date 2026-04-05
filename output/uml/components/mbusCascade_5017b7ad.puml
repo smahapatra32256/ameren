@@ -1,0 +1,144 @@
+@startuml
+participant Caller
+participant "mbusCascade.bas"
+participant "Debug Console"
+participant "ADODB.Recordset"
+participant ScheduledException
+participant ErrorHandler
+participant IsTimeValid
+box "mbusCascade.bas Methods"
+Caller -> "mbusCascade.bas": DebugPrint(v_varStringArray)
+activate "mbusCascade.bas"
+loop For each element in v_varStringArray
+  "mbusCascade.bas" -> "Debug Console": Print v_varStringArray(i)
+  activate "Debug Console"
+  "Debug Console" --> "mbusCascade.bas": Output displayed
+  deactivate "Debug Console"
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": AllocateScheduledShift(r_rsAvailSched, v_lngSchedCode, v_datChargeDate)
+activate "mbusCascade.bas"
+"mbusCascade.bas" -> "ADODB.Recordset": Set Filter "SCHED_CD = " + v_lngSchedCode
+"mbusCascade.bas" -> "mbusCascade.bas": RecordsExist(r_rsAvailSched)
+activate "mbusCascade.bas"
+"mbusCascade.bas" --> "mbusCascade.bas": recordsExistResult
+deactivate "mbusCascade.bas"
+alt if NOT recordsExistResult
+  "mbusCascade.bas" --> Caller: ScheduledShift
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": CopyScheduledException(r_rsExceptions)
+activate "mbusCascade.bas"
+"mbusCascade.bas" -> ScheduledException: Initialize l_SchedExc object
+alt No error occurs
+  "mbusCascade.bas" -> "ADODB.Recordset": Read fields (EMP_NUM, CHARGE_DATE, SHIFT_NUM, etc.)
+  activate "ADODB.Recordset"
+  "ADODB.Recordset" --> "mbusCascade.bas": Field values
+  deactivate "ADODB.Recordset"
+  "mbusCascade.bas" -> ScheduledException: Assign field values to l_SchedExc properties
+  "mbusCascade.bas" --> Caller: l_SchedExc (ScheduledException object)
+else An error occurs during data access or assignment
+  "mbusCascade.bas" -> ErrorHandler: TrsRaiseError(m_strCMODULENAME, "CopyScheduledException")
+  activate ErrorHandler
+  ErrorHandler --> "mbusCascade.bas": Error handled/raised
+  deactivate ErrorHandler
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": IsScheduledWorkDay(r_udtScheduleShift)
+activate "mbusCascade.bas"
+alt No error occurs
+  "mbusCascade.bas" -> IsTimeValid: IsTimeValid(r_udtScheduleShift.StartTime)
+  activate IsTimeValid
+  IsTimeValid --> "mbusCascade.bas": result: Boolean
+  deactivate IsTimeValid
+  "mbusCascade.bas" --> Caller: result: Boolean
+else An error occurs
+  "mbusCascade.bas" -> ErrorHandler: TrsRaiseError(m_strCMODULENAME, "IsScheduledWorkDay")
+  activate ErrorHandler
+  ErrorHandler --> "mbusCascade.bas":
+  deactivate ErrorHandler
+  "mbusCascade.bas" --> Caller: Error propagated
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": IsScheduledOffDay(r_udtScheduleShift)
+activate "mbusCascade.bas"
+alt Error occurs during processing
+  "mbusCascade.bas" -> ErrorHandler: TrsRaiseError(m_strCMODULENAME, "IsScheduledOffDay")
+  activate ErrorHandler
+  ErrorHandler --> "mbusCascade.bas": Error raised/logged
+  deactivate ErrorHandler
+  "mbusCascade.bas" --> Caller: Error
+else No error
+  "mbusCascade.bas" -> "mbusCascade.bas": IsScheduledWorkDay(r_udtScheduleShift)
+  activate "mbusCascade.bas"
+  "mbusCascade.bas" --> "mbusCascade.bas": isWorkDayResult
+  deactivate "mbusCascade.bas"
+  "mbusCascade.bas" --> Caller: Not isWorkDayResult
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": HasScheduledLunch(r_udtScheduleShift)
+activate "mbusCascade.bas"
+alt On Error
+  "mbusCascade.bas" -> ErrorHandler: Raise error for "HasScheduledLunch"
+  activate ErrorHandler
+  ErrorHandler --> "mbusCascade.bas": Error processed
+  deactivate ErrorHandler
+else Normal execution
+  "mbusCascade.bas" --> "mbusCascade.bas": Evaluate r_udtScheduleShift.LunchStart <> "" And r_udtScheduleShift.LunchEnd <> ""
+end
+"mbusCascade.bas" --> Caller: Boolean result
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": ShiftTime(v_strTime, v_varHoursOffset, v_strLunchStart, v_strLunchEnd, v_bln2400)
+activate "mbusCascade.bas"
+alt Lunch start provided AND lunch end missing
+  "mbusCascade.bas" -> "mbusCascade.bas": Err.Raise(30001 + vbObjectError, "Lunch end is required...")
+  note right: Error raised, jumps to error handler
+  "mbusCascade.bas" -> ErrorHandler: TrsRaiseError(m_strCMODULENAME, "ShiftTime")
+  activate ErrorHandler
+  ErrorHandler --> "mbusCascade.bas": Error processed
+  deactivate ErrorHandler
+else Other cases
+  "mbusCascade.bas" --> Caller: Calculated time result
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": AllocateScheduledShiftByDay(r_rsAvailSched, v_strDayofWeek)
+activate "mbusCascade.bas"
+alt Successful data extraction
+  "mbusCascade.bas" -> "ADODB.Recordset": Access "SCHED_CD" field
+  activate "ADODB.Recordset"
+  "ADODB.Recordset" --> "mbusCascade.bas": ScheduleCode value
+  deactivate "ADODB.Recordset"
+  "mbusCascade.bas" -> "ADODB.Recordset": Access multiple shift-related fields using v_strDayofWeek
+  activate "ADODB.Recordset"
+  "ADODB.Recordset" --> "mbusCascade.bas": ShiftCode, StartTime, EndTime, Hours, Lunch, Overtime, ActualDay values
+  deactivate "ADODB.Recordset"
+  "mbusCascade.bas" --> Caller: Populated ScheduledShift object
+else Error occurred during field access
+  "mbusCascade.bas" -> ErrorHandler: TrsRaiseError(moduleName, methodName)
+  activate ErrorHandler
+  ErrorHandler --> "mbusCascade.bas": Error processed
+  deactivate ErrorHandler
+  "mbusCascade.bas" --> Caller: (Function exits after error handling)
+end
+deactivate "mbusCascade.bas"
+Caller -> "mbusCascade.bas": DetermineShiftDates(v_strShiftStartDay, v_strChargeDateDayOfWeek, v_datChargeDate, v_strShiftStartTime, v_strShiftEndTime, r_datShiftStartDate, r_datShiftEndDate)
+activate "mbusCascade.bas"
+alt No Shift: v_strShiftStartDay is empty
+  "mbusCascade.bas" -> "mbusCascade.bas": Set r_datShiftStartDate = v_datChargeDate
+  "mbusCascade.bas" -> "mbusCascade.bas": Set r_datShiftEndDate = v_datChargeDate
+  "mbusCascade.bas" --> Caller: Return with updated r_datShiftStartDate, r_datShiftEndDate
+else Shift starts on charge date: v_strShiftStartDay = v_strChargeDateDayOfWeek
+  "mbusCascade.bas" -> "mbusCascade.bas": Set r_datShiftStartDate = v_datChargeDate
+  alt Shift ends on same day: v_strShiftStartTime <= v_strShiftEndTime
+    "mbusCascade.bas" -> "mbusCascade.bas": Set r_datShiftEndDate = v_datChargeDate
+  else Shift ends next day: v_strShiftStartTime > v_strShiftEndTime
+    "mbusCascade.bas" -> "mbusCascade.bas": Calculate r_datShiftEndDate = DateAdd("d", 1, v_datChargeDate)
+  end
+  "mbusCascade.bas" --> Caller: Return with updated r_datShiftStartDate, r_datShiftEndDate
+else Shift starts prior to charge date
+  "mbusCascade.bas" -> "mbusCascade.bas": Calculate r_datShiftStartDate = DateAdd("d", -1, v_datChargeDate)
+  "mbusCascade.bas" -> "mbusCascade.bas": Set r_datShiftEndDate = v_datChargeDate
+end
+deactivate "mbusCascade.bas"
+end box
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+participant Caller
+participant "cdCallLogNonTxn.cls"
+participant "ADODB.Connection"
+participant "ADODB.Recordset"
+participant "util_DBConnectMgr.clsuDBConnectMgr"
+database DB
+Caller -> "cdCallLogNonTxn.cls": GetLastCallNum(v_lngOTOppNum, v_lngEmpNum)
+activate "cdCallLogNonTxn.cls"
+"cdCallLogNonTxn.cls" -> "ADODB.Connection": New Connection object
+activate "ADODB.Connection"
+"ADODB.Connection" --> "cdCallLogNonTxn.cls": l_objCN instance
+deactivate "ADODB.Connection"
+"cdCallLogNonTxn.cls" -> "ADODB.Recordset": New Recordset object
+activate "ADODB.Recordset"
+"ADODB.Recordset" --> "cdCallLogNonTxn.cls": l_objRS instance
+deactivate "ADODB.Recordset"
+"cdCallLogNonTxn.cls" -> DB: Execute query to get last call number
+activate DB
+DB --> "cdCallLogNonTxn.cls": Result
+deactivate DB
+"cdCallLogNonTxn.cls" --> Caller: Last call number
+deactivate "cdCallLogNonTxn.cls"
+Caller -> "cdCallLogNonTxn.cls": GetCurrentTimestamp()
+activate "cdCallLogNonTxn.cls"
+alt Successful execution path
+  "cdCallLogNonTxn.cls" -> "util_DBConnectMgr.clsuDBConnectMgr": GetConnectionString()
+  activate "util_DBConnectMgr.clsuDBConnectMgr"
+  "util_DBConnectMgr.clsuDBConnectMgr" --> "cdCallLogNonTxn.cls": ConnectionString
+  deactivate "util_DBConnectMgr.clsuDBConnectMgr"
+  "cdCallLogNonTxn.cls" -> "ADODB.Connection": Set ConnectionString
+  activate "ADODB.Connection"
+  "ADODB.Connection" -> "ADODB.Connection": Open connection
+  "ADODB.Connection" --> "cdCallLogNonTxn.cls": Connection opened
+  deactivate "ADODB.Connection"
+  "cdCallLogNonTxn.cls" -> DB: Execute query to get current timestamp
+  activate DB
+  DB --> "cdCallLogNonTxn.cls": Timestamp result
+  deactivate DB
+  "cdCallLogNonTxn.cls" --> Caller: Current timestamp
+else Error path
+  "cdCallLogNonTxn.cls" --> Caller: Error or default timestamp
+end
+deactivate "cdCallLogNonTxn.cls"
+@enduml

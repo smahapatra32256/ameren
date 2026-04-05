@@ -1,0 +1,32 @@
+@startuml
+participant "Caller" as Caller
+participant "cbsRequestFirstApprTran.cls" as CBS
+participant "ADODB.Recordset" as Recordset
+participant "stdmTRISCommon" as Common
+participant "dbAdjustments.cdRequestFirstAppr" as DbAdj
+participant "dbEmployee.cdEmployee" as DbEmp
+participant "dbCodeTables.cdCodeTables" as DbCode
+database "Database" as DB
+participant "TrsRaiseError" as ErrorHandler
+group ProcessAdjustmentRequest
+  Caller -> CBS: ProcessAdjustmentRequest(v_adrsAdjRequest, r_adrsErrors, v_lUserEmployeeNumber)
+  activate CBS
+  CBS -> CBS: Initialize return to False
+  CBS -> CBS: DefineBRV()
+  activate CBS
+  CBS -> Recordset: Instantiate Recordset object
+  activate Recordset
+  loop Append 8 Fields
+    Recordset -> Recordset: Fields.Append(name, type, size, updatable)
+  end
+  Recordset -> Recordset: Set CursorLocation, CursorType, LockType
+  Recordset -> Recordset: Open()
+  Recordset --> CBS: Recordset initialized
+  deactivate Recordset
+  alt No error occurred
+    CBS --> CBS: r_adrsErrors initialized
+  else Error occurred
+    CBS -> ErrorHandler: Raise Error (MODULENAME, "DefineBRV")
+    activate ErrorHandler
+    ErrorHandler --> CBS: Error raised
+@enduml

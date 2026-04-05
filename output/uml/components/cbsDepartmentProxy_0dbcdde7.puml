@@ -1,0 +1,30 @@
+@startuml
+!pragma layout smetana
+participant Caller
+participant "cbsDepartmentProxy.cls" as cbsDepartmentProxy
+participant "COM Runtime" as COMRUNTIME
+participant "busDepartment.cbsDepartment" as busDepartment
+database Database
+participant "TrsErrorHandlingSystem" as TrsErrorHandlingSystem
+group GetDepartment
+  Caller -> cbsDepartmentProxy: GetDepartment(v_strDeptNum As Long)
+  activate cbsDepartmentProxy
+  alt Successful execution
+    cbsDepartmentProxy -> COMRUNTIME: CreateObject("busDepartment.cbsDepartment")
+    activate COMRUNTIME
+    COMRUNTIME --> cbsDepartmentProxy: l_objcbsDepartment instance
+    deactivate COMRUNTIME
+    cbsDepartmentProxy -> busDepartment: GetDepartment(v_strDeptNum)
+    activate busDepartment
+    busDepartment -> Database: Retrieve Department Data
+    activate Database
+    Database --> busDepartment: ADODB.Recordset
+    deactivate Database
+    busDepartment --> cbsDepartmentProxy: ADODB.Recordset
+    deactivate busDepartment
+    cbsDepartmentProxy -> cbsDepartmentProxy: Release l_objcbsDepartment
+    cbsDepartmentProxy --> Caller: ADODB.Recordset
+  else Error occurred
+    cbsDepartmentProxy -> cbsDepartmentProxy: Release l_objcbsDepartment
+    cbsDepartmentProxy -> TrsErrorHandlingSystem: TrsRaiseError("busDepartment.cbsDepartment", "GetDepartment", ...)
+@enduml

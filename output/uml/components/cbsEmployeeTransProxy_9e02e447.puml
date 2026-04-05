@@ -1,0 +1,89 @@
+@startuml
+participant Caller
+participant "cbsEmployeeTransProxy.cls"
+participant "busEmployee.cbsEmployeeTrans"
+participant TrsRaiseError
+group ProcessEmpQualsSkillsEntries
+  Caller -> "cbsEmployeeTransProxy.cls": ProcessEmpQualsSkillsEntries(vadrsQAndSInformation, radrsErrors, vlUserEmployeeNumber)
+  activate "cbsEmployeeTransProxy.cls"
+  "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": CreateObject("busEmployee.cbsEmployeeTrans")
+  activate "busEmployee.cbsEmployeeTrans"
+  "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Object created
+  alt Success path
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": ProcessEmpQualsSkillsEntries(vadrsQAndSInformation, radrsErrors, vlUserEmployeeNumber)
+    "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Result
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" --> Caller: Result
+  else On Error
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" -> TrsRaiseError: Raise Error("busEmployee.cbsEmployeeTrans", "ProcessEmpQualsSkillsEntries", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cbsEmployeeTransProxy.cls": Error Handled
+    deactivate TrsRaiseError
+    "cbsEmployeeTransProxy.cls" --> Caller: Error
+  end
+  deactivate "cbsEmployeeTransProxy.cls"
+end
+group ProcessSeniorityEntries
+  Caller -> "cbsEmployeeTransProxy.cls": ProcessSeniorityEntries(vadrsSeniorityInformation, vadrsFrozenSeniorityInformation, radrsErrors, vlSeniorityEmployeeNumber, vlUserEmployeeNumber)
+  activate "cbsEmployeeTransProxy.cls"
+  "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": CreateObject("busEmployee.cbsEmployeeTrans")
+  activate "busEmployee.cbsEmployeeTrans"
+  "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Object created
+  alt Successful processing
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": ProcessSeniorityEntries(vadrsSeniorityInformation, vadrsFrozenSeniorityInformation, radrsErrors, vlSeniorityEmployeeNumber, vlUserEmployeeNumber)
+    "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Result
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" --> Caller: Result
+  else On Error GoTo eh
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" -> TrsRaiseError: Raise Error("busEmployee.cbsEmployeeTrans", "ProcessSeniorityEntries", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cbsEmployeeTransProxy.cls": Error Handled
+    deactivate TrsRaiseError
+    "cbsEmployeeTransProxy.cls" --> Caller: Error
+  end
+  deactivate "cbsEmployeeTransProxy.cls"
+end
+group EmployeeCompany
+  Caller -> "cbsEmployeeTransProxy.cls": EmployeeCompany(v_datDeptEffDate, v_strDeptNum, v_strPriorDeptNum, v_strCompanyCode, v_strPriorCompanyCode, v_strChgDate)
+  activate "cbsEmployeeTransProxy.cls"
+  "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": CreateObject("busEmployee.cbsEmployeeTrans")
+  activate "busEmployee.cbsEmployeeTrans"
+  "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Object created
+  alt Successful execution
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": EmployeeCompany(v_datDeptEffDate, v_strDeptNum, v_strPriorDeptNum, v_strCompanyCode, v_strPriorCompanyCode, v_strChgDate)
+    "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": resultString
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" --> Caller: resultString
+  else On Error
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" -> TrsRaiseError: TrsRaiseError("busEmployee.cbsEmployeeTrans", "EmployeeCompany", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> "cbsEmployeeTransProxy.cls": Error Handled
+    deactivate TrsRaiseError
+    "cbsEmployeeTransProxy.cls" --> Caller: Error
+  end
+  deactivate "cbsEmployeeTransProxy.cls"
+end
+group ProcessEmpCanvassJobEntries
+  Caller -> "cbsEmployeeTransProxy.cls": ProcessEmpCanvassJobEntries(vadrsCanvassJobInformation, radrsErrors, vlUserEmployeeNumber)
+  activate "cbsEmployeeTransProxy.cls"
+  "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": CreateObject("busEmployee.cbsEmployeeTrans")
+  activate "busEmployee.cbsEmployeeTrans"
+  "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Object reference
+  alt Successful processing
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": ProcessEmpCanvassJobEntries(vadrsCanvassJobInformation, radrsErrors, vlUserEmployeeNumber)
+    "busEmployee.cbsEmployeeTrans" --> "cbsEmployeeTransProxy.cls": Result
+    "cbsEmployeeTransProxy.cls" -> "busEmployee.cbsEmployeeTrans": Set Nothing
+    deactivate "busEmployee.cbsEmployeeTrans"
+    "cbsEmployeeTransProxy.cls" --> Caller: Result
+  else On Error
+    "cbsEmployee
+@enduml

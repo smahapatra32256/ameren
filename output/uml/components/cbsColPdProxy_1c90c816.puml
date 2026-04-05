@@ -1,0 +1,135 @@
+@startuml
+participant Caller
+participant "cbsColPdProxy.cls" as Proxy
+participant System
+participant "busCollectionPeriod.cbsCollectionPeriod" as BusObject
+participant TrsRaiseError
+group GetCollectionPeriodStatusByEmployee
+  Caller -> Proxy: GetCollectionPeriodStatusByEmployee(v_lngEmpNum, v_datEffectiveDate, v_intMaxNoOfPayPeriods)
+  activate Proxy
+  alt Error occurred
+    Proxy -> TrsRaiseError: Raise error "busCollectionPeriod.cbsCollectionPeriod", "GetCollectionPeriodStatusByEmployee"
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+  end
+  Proxy --> Caller
+  deactivate Proxy
+end
+group GetPayProcIndInRange
+  Caller -> Proxy: GetPayProcIndInRange(v_strPayrollGroupCode, v_datChargeDate)
+  activate Proxy
+  note over Proxy: Declare l_objcbsCollectionPeriod
+  alt Successful execution
+    Proxy -> System: CreateObject("busCollectionPeriod.cbsCollectionPeriod")
+    activate System
+    System --> Proxy: l_objcbsCollectionPeriod instance
+    deactivate System
+    Proxy -> BusObject: GetPayProcIndInRange(v_strPayrollGroupCode, v_datChargeDate)
+    activate BusObject
+    BusObject --> Proxy: PayProcInd
+    deactivate BusObject
+    note over Proxy: Assign PayProcInd to function result
+    note over Proxy: Release l_objcbsCollectionPeriod object
+    Proxy --> Caller: PayProcInd
+  else Error occurred
+    note over Proxy: Release l_objcbsCollectionPeriod object
+    Proxy -> TrsRaiseError: Raise error for busCollectionPeriod.cbsCollectionPeriod.GetPayProcIndInRange
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetCollectionPeriodLockStatus
+  Caller -> Proxy: GetCollectionPeriodLockStatus(v_strDeptNum, v_strPrevDeptNum, v_datStartDate, v_datEndDate)
+  activate Proxy
+  alt Normal execution
+    Proxy -> System: CreateObject("busCollectionPeriod.cbsCollectionPeriod")
+    activate System
+    System --> Proxy: Object instance created
+    deactivate System
+    Proxy -> BusObject: GetCollectionPeriodLockStatus(v_strDeptNum, v_strPrevDeptNum, v_datStartDate, v_datEndDate)
+    activate BusObject
+    BusObject --> Proxy: LockStatus
+    deactivate BusObject
+    Proxy --> Caller: LockStatus
+  else Error occurs
+    Proxy -> TrsRaiseError: Raise error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetCollectionPeriodsByDepartment
+  Caller -> Proxy: GetCollectionPeriodsByDepartment(v_strDeptNum)
+  activate Proxy
+  alt Successful execution
+    Proxy -> System: CreateObject("busCollectionPeriod.cbsCollectionPeriod")
+    activate System
+    System --> Proxy: New busCollectionPeriod object
+    deactivate System
+    Proxy -> BusObject: GetCollectionPeriodsByDepartment(v_strDeptNum)
+    activate BusObject
+    BusObject --> Proxy: ADODB.Recordset
+    deactivate BusObject
+    Proxy -> Proxy: Clean up l_objcbsCollectionPeriod
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs
+    Proxy -> Proxy: Clean up l_objcbsCollectionPeriod
+    Proxy -> TrsRaiseError: Raise error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error raised/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetCollectionPeriodsByWorkGroup
+  Caller -> Proxy: GetCollectionPeriodsByWorkGroup(v_lngWorkGroup)
+  activate Proxy
+  alt Normal execution
+    Proxy -> System: CreateObject("busCollectionPeriod.cbsCollectionPeriod")
+    activate System
+    System --> Proxy: Instance created
+    deactivate System
+    Proxy -> BusObject: GetCollectionPeriodsByWorkGroup(v_lngWorkGroup)
+    activate BusObject
+    BusObject --> Proxy: ADODB.Recordset
+    deactivate BusObject
+    Proxy --> Caller: ADODB.Recordset
+  else Error occurs
+    Proxy -> TrsRaiseError: Raise error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error handled
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetLatestProcessedPayPeriodEndDate
+  Caller -> Proxy: GetLatestProcessedPayPeriodEndDate(v_strPayrollGroupCode)
+  activate Proxy
+  alt Successful execution
+    Proxy -> System: CreateObject("busCollectionPeriod.cbsCollectionPeriod")
+    activate System
+    System --> Proxy: l_objcbsCollectionPeriod (object)
+    deactivate System
+    Proxy -> BusObject: GetLatestProcessedPayPeriodEndDate(v_strPayrollGroupCode)
+    activate BusObject
+    BusObject --> Proxy: PayPeriodEndDate (Date)
+    deactivate BusObject
+    Proxy --> Caller: PayPeriodEndDate (Date)
+  else Error occurs (On Error GoTo eh)
+    Proxy -> TrsRaiseError: Raise error "busCollectionPeriod.cbsCollectionPeriod", "GetLatestProcessedPayPeriodEndDate", ...
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error handled/logged
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error (or default value)
+  end
+  deactivate Proxy
+end
+@enduml

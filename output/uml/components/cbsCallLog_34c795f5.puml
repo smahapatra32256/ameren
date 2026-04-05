@@ -1,0 +1,67 @@
+@startuml
+participant Caller
+participant "cbsCallLog.cls" as cbsCallLog_cls
+participant "dbCallLog.cdCallLog" as dbCallLog_cdCallLog
+participant GetObjectContext
+participant TrsRaiseError
+group OTStartCall
+  Caller -> cbsCallLog_cls: OTStartCall(v_lngOTOppNum, v_lngEmpNum, v_strNumDialed, v_strUserID)
+  activate cbsCallLog_cls
+  cbsCallLog_cls -> dbCallLog_cdCallLog: CreateObject("dbCallLog.cdCallLog")
+  activate dbCallLog_cdCallLog
+  dbCallLog_cdCallLog --> cbsCallLog_cls: Instance created
+  deactivate dbCallLog_cdCallLog
+  alt Successful execution
+    cbsCallLog_cls -> dbCallLog_cdCallLog: OTStartCall(v_lngOTOppNum, v_lngEmpNum, v_strNumDialed, v_strUserID)
+    activate dbCallLog_cdCallLog
+    dbCallLog_cdCallLog --> cbsCallLog_cls: CallTimestamp (String)
+    deactivate dbCallLog_cdCallLog
+    cbsCallLog_cls -> GetObjectContext: SetComplete()
+    activate GetObjectContext
+    GetObjectContext --> cbsCallLog_cls:
+    deactivate GetObjectContext
+    cbsCallLog_cls --> Caller: CallTimestamp (String)
+  else Error occurred
+    cbsCallLog_cls -> GetObjectContext: SetAbort()
+    activate GetObjectContext
+    GetObjectContext --> cbsCallLog_cls:
+    deactivate GetObjectContext
+    cbsCallLog_cls -> TrsRaiseError: Raise error for OTStartCall
+    activate TrsRaiseError
+    TrsRaiseError --> cbsCallLog_cls:
+    deactivate TrsRaiseError
+    cbsCallLog_cls --> Caller: Error (or empty string)
+  end
+  deactivate cbsCallLog_cls
+end
+group OTEndCall
+  Caller -> cbsCallLog_cls: OTEndCall(v_lngOTOppNum, v_lngEmpNum, v_strCallStartID, v_strUserID)
+  activate cbsCallLog_cls
+  cbsCallLog_cls -> dbCallLog_cdCallLog: CreateObject("dbCallLog.cdCallLog")
+  activate dbCallLog_cdCallLog
+  dbCallLog_cdCallLog --> cbsCallLog_cls: l_cdCallLog object
+  deactivate dbCallLog_cdCallLog
+  cbsCallLog_cls -> dbCallLog_cdCallLog: OTEndCall(v_lngOTOppNum, v_lngEmpNum, v_strCallStartID, v_strUserID)
+  activate dbCallLog_cdCallLog
+  alt Successful execution
+    dbCallLog_cdCallLog --> cbsCallLog_cls:
+    deactivate dbCallLog_cdCallLog
+    cbsCallLog_cls -> GetObjectContext: SetComplete()
+    activate GetObjectContext
+    GetObjectContext --> cbsCallLog_cls:
+    deactivate GetObjectContext
+  else Error during execution
+    dbCallLog_cdCallLog --> cbsCallLog_cls: Error
+    deactivate dbCallLog_cdCallLog
+    cbsCallLog_cls -> GetObjectContext: SetAbort()
+    activate GetObjectContext
+    GetObjectContext --> cbsCallLog_cls:
+    deactivate GetObjectContext
+    cbsCallLog_cls -> TrsRaiseError: TrsRaiseError(m_strCMODULENAME, "OTEndCall", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> cbsCallLog_cls:
+    deactivate TrsRaiseError
+  end
+  deactivate cbsCallLog_cls
+end
+@enduml

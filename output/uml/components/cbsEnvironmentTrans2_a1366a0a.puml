@@ -1,0 +1,15 @@
+@startuml
+participant Caller
+participant "cbsEnvironmentTrans2.cls" as cbsEnvironmentTrans2
+group SetUserPreference
+  Caller -> cbsEnvironmentTrans2: SetUserPreference(v_lngEmpNum, v_eTypeCd, v_strOtherTypeCd, v_rsPreference)
+  activate cbsEnvironmentTrans2
+  opt On Error GoTo eh
+    alt v_eTypeCd <> PreferenceTypeCode.Other
+      cbsEnvironmentTrans2 -> cbsEnvironmentTrans2: Determine strTypeCd from v_eTypeCd
+    else
+      cbsEnvironmentTrans2 -> cbsEnvironmentTrans2: Use v_strOtherTypeCd as strTypeCd
+    end
+  end
+end
+@enduml

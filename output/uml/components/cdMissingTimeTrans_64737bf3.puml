@@ -1,0 +1,139 @@
+@startuml
+participant Caller
+participant "cdMissingTimeTrans.cls" as cdMissingTimeTrans
+participant IObjectConstructString
+participant App
+participant Collection
+participant String
+participant OpenConnection
+database Database
+participant ExecuteOTHERSQL
+participant ObjectContext
+participant TrsRaiseError
+participant "colPropertyValue"
+group IObjectConstruct_Construct
+  Caller -> cdMissingTimeTrans: IObjectConstruct_Construct(pCtorObj)
+  activate cdMissingTimeTrans
+  cdMissingTimeTrans -> IObjectConstructString: Get ConstructString property
+  activate IObjectConstructString
+  IObjectConstructString --> cdMissingTimeTrans: ConstructString value
+  deactivate IObjectConstructString
+  cdMissingTimeTrans -> cdMissingTimeTrans: Call ParseContructString(m_ConstructString)
+  activate cdMissingTimeTrans
+  cdMissingTimeTrans -> Collection: New Collection()
+  activate Collection
+  Collection --> cdMissingTimeTrans: colConstructStringProperty
+  deactivate Collection
+  cdMissingTimeTrans -> String: Split(ConstructString, ";")
+  activate String
+  String --> cdMissingTimeTrans: PropertyValueArray
+  deactivate String
+  loop For Each PropertyValue In PropertyValueArray
+    cdMissingTimeTrans -> String: Split(PropertyValue, "=")
+    activate String
+    String --> cdMissingTimeTrans: PropertyValueArray2
+    deactivate String
+    alt If UBound(PropertyValueArray2) >= 1
+      cdMissingTimeTrans -> Collection: Add(PropertyValueArray2(1), PropertyValueArray2(0))
+      activate Collection
+      Collection --> cdMissingTimeTrans:
+      deactivate Collection
+    else Else (UBound < 1)
+      cdMissingTimeTrans -> cdMissingTimeTrans: Skip adding property
+    end
+  end
+  deactivate cdMissingTimeTrans
+  cdMissingTimeTrans -> cdMissingTimeTrans: Call PostConstruct()
+  activate cdMissingTimeTrans
+  alt If DoesPropertyExists(m_colConstructStringProperty, "DEBUGGING") is true
+    cdMissingTimeTrans -> cdMissingTimeTrans: DoesPropertyExists(m_colConstructStringProperty, "DEBUGGING")
+    activate cdMissingTimeTrans
+    cdMissingTimeTrans -> "colPropertyValue": Get Item(Property)
+    activate "colPropertyValue"
+    alt Item exists in Collection
+      "colPropertyValue" --> cdMissingTimeTrans: Item value
+      deactivate "colPropertyValue"
+      cdMissingTimeTrans --> cdMissingTimeTrans: True
+    else Item does not exist (Error)
+      "colPropertyValue" --> cdMissingTimeTrans: Error (On Error GoTo eh)
+      deactivate "colPropertyValue"
+      cdMissingTimeTrans --> cdMissingTimeTrans: False
+    end
+    deactivate cdMissingTimeTrans
+    alt If IsNumeric(value) is true
+      cdMissingTimeTrans -> cdMissingTimeTrans: Convert value to Integer (CInt)
+      cdMissingTimeTrans -> cdMissingTimeTrans: Assign converted value to DEBUGGING property
+    end
+  end
+  deactivate cdMissingTimeTrans
+  cdMissingTimeTrans -> App: LogEvent(MODULENAME & " ObjectConstructString = " & m_ConstructString, vbLogEventTypeInformation)
+  activate App
+  App --> cdMissingTimeTrans: Log confirmation
+  deactivate App
+  deactivate cdMissingTimeTrans
+end
+group InsertEmployeeBriefSchedule
+  Caller -> cdMissingTimeTrans: InsertEmployeeBriefSchedule(vadrsBriefSchedule)
+  activate cdMissingTimeTrans
+  alt No Error Occurs
+    alt vadrsBriefSchedule Is Nothing
+      cdMissingTimeTrans -> ObjectContext: SetComplete
+      ObjectContext --> Caller:
+    else vadrsBriefSchedule Is Not Nothing
+      alt vadrsBriefSchedule Is Empty (.EOF And .BOF)
+        cdMissingTimeTrans -> ObjectContext: SetComplete
+        ObjectContext --> Caller:
+      end
+    end
+  end
+  deactivate cdMissingTimeTrans
+end
+group DeleteEmployeeBriefSchedule
+  Caller -> cdMissingTimeTrans: DeleteEmployeeBriefSchedule()
+  activate cdMissingTimeTrans
+  cdMissingTimeTrans -> OpenConnection: OpenConnection()
+  activate OpenConnection
+  OpenConnection -> Database: Establish connection
+  activate Database
+  Database --> OpenConnection: Connection object (ladcn)
+  deactivate Database
+  OpenConnection --> cdMissingTimeTrans: ladcn (ADODB.Connection)
+  deactivate OpenConnection
+  alt Successful execution
+    cdMissingTimeTrans -> ExecuteOTHERSQL: ExecuteOTHERSQL("DELETE FROM METHDBA.TTR_EMPL_SCH", ladcn)
+    activate ExecuteOTHERSQL
+    ExecuteOTHERSQL -> Database: Execute SQL query
+    activate Database
+    Database --> ExecuteOTHERSQL: SQL execution successful
+    deactivate Database
+    ExecuteOTHERSQL --> cdMissingTimeTrans:
+    deactivate ExecuteOTHERSQL
+    cdMissingTimeTrans -> ObjectContext: SetComplete()
+    activate ObjectContext
+    ObjectContext --> cdMissingTimeTrans:
+    deactivate ObjectContext
+  else Error occurred (DeleteEmployeeBriefSchedule_EH)
+    cdMissingTimeTrans -> ObjectContext: SetAbort()
+    activate ObjectContext
+    ObjectContext --> cdMissingTimeTrans:
+    deactivate ObjectContext
+    alt Error is trErrutOpenConnection
+      cdMissingTimeTrans -> TrsRaiseError: TrsRaiseError(MODULENAME, "DeleteEmployeeBriefSchedule", trErrutOpenConnection)
+      activate TrsRaiseError
+      TrsRaiseError --> cdMissingTimeTrans:
+      deactivate TrsRaiseError
+    else Error is trErrdb_ExecuteSQL_F
+      cdMissingTimeTrans -> TrsRaiseError: TrsRaiseError(MODULENAME, "DeleteEmployeeBriefSchedule", trErrdb_ExecuteSQL_F)
+      activate TrsRaiseError
+      TrsRaiseError --> cdMissingTimeTrans:
+      deactivate TrsRaiseError
+    else Other Error
+      cdMissingTimeTrans -> TrsRaiseError: TrsRaiseError(MODULENAME, "DeleteEmployeeBriefSchedule", Err.Number)
+      activate TrsRaiseError
+      TrsRaiseError --> cdMissingTimeTrans:
+      deactivate TrsRaiseError
+    end
+  end
+  deactivate cdMissingTimeTrans
+end
+@enduml

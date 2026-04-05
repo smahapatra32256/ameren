@@ -1,0 +1,68 @@
+@startuml
+participant Caller
+participant "cuRecordCache.cls" as Cache
+participant Collection
+participant "Error Handling System" as ErrorHandler
+participant "utilSPMCache.cuSPMCache" as SPMCache
+participant System
+participant "utilSPMCacheProxy.cuSPMCacheProxy" as SPMCacheProxy
+participant "utilServerInfo.cuServerInfo" as ServerInfo
+participant Database
+participant "ADODB.Recordset" as Recordset
+participant r_objCaller
+box "cuRecordCache.cls Methods"
+    Caller -> Cache: GetRecord(v_strKey, v_strGroupName, v_blnLazyInitialized, v_blnSupportsInvalidate, v_blnOneRowForEachKey, r_blnExists, r_objCaller)
+    activate Cache
+        alt No error occurs during GetRecord3 call
+            Cache -> Cache: Call GetRecord3(v_strKey, v_strKey, v_strGroupName, v_blnLazyInitialized, v_blnSupportsInvalidate, v_blnOneRowForEachKey, r_blnExists, r_objCaller)
+            activate Cache
+            Cache --> Cache: Return value from GetRecord3
+            deactivate Cache
+            Cache --> Caller: Return GetRecord value
+        else An error occurs during GetRecord3 call
+            Cache -> Collection: New Collection for error arguments
+            activate Collection
+            Collection --> Cache: l_colErrArgs object
+            deactivate Collection
+            Cache -> Collection: Add v_strKey to error args
+            Cache -> Collection: Add v_strGroupName to error args
+            Cache -> Collection: Add v_blnLazyInitialized to error args
+            Cache -> Collection: Add v_blnSupportsInvalidate to error args
+            Cache -> Collection: Add v_blnOneRowForEachKey to error args
+            alt If r_objCaller is not Nothing
+                Cache -> Collection: Add TypeName(r_objCaller) to error args
+            else
+                Cache -> Collection: Add "r_objCaller = Nothing" to error args
+            end
+            Cache -> ErrorHandler: TrsRaiseError(m_strCMODULENAME, "GetRecord", ..., l_colErrArgs, True)
+            activate ErrorHandler
+            ErrorHandler --> Cache: Error processed
+            deactivate ErrorHandler
+            Cache --> Caller: Return with error
+        end
+    deactivate Cache
+    Caller -> Cache: GetRecord3(v_strKey, v_varKey, v_strGroupName, v_blnLazyInitialized, v_blnSupportsInvalidate, v_blnOneRowForEachKey, r_blnExists, r_objCaller)
+    activate Cache
+        Cache -> SPMCache: CreateObject("utilSPMCache.cuSPMCache")
+        activate SPMCache
+        SPMCache --> Cache: spmWrapper object
+        deactivate SPMCache
+    deactivate Cache
+    Caller -> Cache: GetRecord2(v_varKey, v_strGroupName, v_blnLazyInitialized, v_blnSupportsInvalidate, v_blnOneRowForEachKey, r_blnExists, r_objCaller)
+    activate Cache
+        Cache -> SPMCache: CreateObject("utilSPMCache.cuSPMCache")
+        activate SPMCache
+        SPMCache --> Cache: spmWrapper
+        deactivate SPMCache
+        Cache -> SPMCache: Item(v_strGroupName, CCACHEMETADATA, l_blnMetaDataExists, l_blnMetaDataGroupExists)
+        activate SPMCache
+        SPMCache --> Cache: l_varRecord, l_blnMetaDataExists, l_blnMetaDataGroupExists
+        deactivate SPMCache
+        alt If metadata not in cache (l_blnMetaDataGroupExists is false OR l_blnMetaDataExists is false)
+            alt If v_blnLazyInitialized is true (Load on demand)
+                Cache -> Cache: Raise Error trErrRecordCacheNoMetaData
+                Cache -> ErrorHandler: TrsRaiseError(m_strCMODULENAME, "GetRecord2", Err.Number, ..., l_colErrArgs, True)
+                activate ErrorHandler
+                ErrorHandler --> Cache: Error Handled
+                deactivate
+@enduml

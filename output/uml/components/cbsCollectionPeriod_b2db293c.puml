@@ -1,0 +1,195 @@
+@startuml
+participant Caller
+participant "cbsCollectionPeriod.cls" as cbsCollectionPeriod
+participant "dbDepartment.cdDepartment" as dbDepartment
+participant "busEnvironment.cbsEnvironment" as busEnvironment
+participant "TrsRaiseError" as TrsRaiseErrorSystem
+participant "r_objResultTable" as ResultTable
+database Database
+participant "dbCollectionPeriod.cdCollectionPeriod" as dbCollectionPeriod
+group GetPayrollGroup
+  Caller -> cbsCollectionPeriod: GetPayrollGroup(v_strDepartment)
+  activate cbsCollectionPeriod
+  alt Successful execution
+    cbsCollectionPeriod -> dbDepartment: CreateObject("dbDepartment.cdDepartment")
+    activate dbDepartment
+    dbDepartment --> cbsCollectionPeriod: Object instance
+    deactivate dbDepartment
+    cbsCollectionPeriod -> dbDepartment: GetPayrollGroup(v_strDepartment)
+    activate dbDepartment
+    dbDepartment --> cbsCollectionPeriod: PayrollGroup string
+    deactivate dbDepartment
+    cbsCollectionPeriod --> Caller: PayrollGroup string
+  else Error occurs (On Error GoTo GetPayrollGroup_EH)
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: Raise error for GetPayrollGroup
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error handled
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Error
+  end
+  deactivate cbsCollectionPeriod
+end
+group GetDefaultEffectiveDate
+  Caller -> cbsCollectionPeriod: GetDefaultEffectiveDate()
+  activate cbsCollectionPeriod
+  alt Successful execution
+    cbsCollectionPeriod -> busEnvironment: CreateObject("busEnvironment.cbsEnvironment")
+    activate busEnvironment
+    cbsCollectionPeriod -> busEnvironment: GetDefaultEffectiveDate()
+    busEnvironment --> cbsCollectionPeriod: Default Effective Date
+    deactivate busEnvironment
+    cbsCollectionPeriod --> Caller: Default Effective Date
+  else Error occurs
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: TrsRaiseError(m_strCMODULENAME, "GetDefaultEffectiveDate")
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error raised
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Error
+  end
+  deactivate cbsCollectionPeriod
+end
+group GetCollectionPeriodStatusByEmployee
+  Caller -> cbsCollectionPeriod: GetCollectionPeriodStatusByEmployee(v_lngEmpNum, v_datEffectiveDate, v_intMaxNoOfPayPeriods)
+  activate cbsCollectionPeriod
+  alt v_datEffectiveDate is default
+    cbsCollectionPeriod -> cbsCollectionPeriod: GetDefaultEffectiveDate()
+    activate cbsCollectionPeriod
+    cbsCollectionPeriod --> cbsCollectionPeriod: l_datEffectiveDate
+    deactivate cbsCollectionPeriod
+  else v_datEffectiveDate is invalid
+    cbsCollectionPeriod --> Caller: Exit
+  end
+  deactivate cbsCollectionPeriod
+end
+group UpdateCollectionPeriodStatusTable
+  Caller -> cbsCollectionPeriod: UpdateCollectionPeriodStatusTable(r_objFromTable, r_objResultTable)
+  activate cbsCollectionPeriod
+  alt Normal execution
+    cbsCollectionPeriod -> ResultTable: Add new record and copy data from r_objFromTable
+    activate ResultTable
+    ResultTable --> cbsCollectionPeriod: Record prepared
+    deactivate ResultTable
+    cbsCollectionPeriod -> ResultTable: Update
+    activate ResultTable
+    ResultTable -> Database: Commit new record
+    activate Database
+    Database --> ResultTable: Record committed
+    deactivate Database
+    ResultTable --> cbsCollectionPeriod: Update complete
+    deactivate ResultTable
+    cbsCollectionPeriod --> Caller: Function returns
+  else On Error
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: TrsRaiseError(m_strCMODULENAME, "UpdateCollectionPeriodStatusTable", ...)
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error handled/logged
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Function returns (after error handling)
+  end
+  deactivate cbsCollectionPeriod
+end
+group GetPayProcIndInRange
+  Caller -> cbsCollectionPeriod: GetPayProcIndInRange(v_strPayrollGroupCode, v_datChargeDate)
+  activate cbsCollectionPeriod
+  alt No error occurs
+    cbsCollectionPeriod -> dbCollectionPeriod: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+    activate dbCollectionPeriod
+    dbCollectionPeriod --> cbsCollectionPeriod: Object created
+    cbsCollectionPeriod -> dbCollectionPeriod: GetPayProcIndInRange(v_strPayrollGroupCode, v_datChargeDate)
+    dbCollectionPeriod --> cbsCollectionPeriod: PayProcIndResult
+    deactivate dbCollectionPeriod
+    cbsCollectionPeriod --> Caller: PayProcIndResult
+  else Error occurs
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: Raise Error (m_strCMODULENAME, "GetPayProcIndInRange", ...)
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error handled/propagated
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Error
+  end
+  deactivate cbsCollectionPeriod
+end
+group GetCollectionPeriodLockStatus
+  Caller -> cbsCollectionPeriod: GetCollectionPeriodLockStatus(v_strDeptNum, v_strPrevDeptNum, v_datStartDate, v_datEndDate)
+  activate cbsCollectionPeriod
+  cbsCollectionPeriod -> dbCollectionPeriod: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+  activate dbCollectionPeriod
+  dbCollectionPeriod --> cbsCollectionPeriod: Object instance
+  cbsCollectionPeriod -> dbCollectionPeriod: GetCollectionPeriodLockStatus(v_strDeptNum, v_strPrevDeptNum, v_datStartDate, v_datEndDate)
+  dbCollectionPeriod --> cbsCollectionPeriod: Lock Status
+  deactivate dbCollectionPeriod
+  cbsCollectionPeriod --> Caller: Lock Status
+  deactivate cbsCollectionPeriod
+end
+group GetCollectionPeriodsByDepartment
+  Caller -> cbsCollectionPeriod: GetCollectionPeriodsByDepartment(v_strDeptNum)
+  activate cbsCollectionPeriod
+  alt On Error GoTo GetCollectionPeriodsByDepartment_EH
+    cbsCollectionPeriod -> busEnvironment: CreateObject("busEnvironment.cbsEnvironment")
+    activate busEnvironment
+    busEnvironment --> cbsCollectionPeriod: Object instance
+    deactivate busEnvironment
+    cbsCollectionPeriod --> Caller: Collection Periods
+  else
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: Raise Error (m_strCMODULENAME, "GetCollectionPeriodsByDepartment", ...)
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error handled
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Error
+  end
+  deactivate cbsCollectionPeriod
+end
+group GetCollectionPeriodsByWorkGroup
+  Caller -> cbsCollectionPeriod: GetCollectionPeriodsByWorkGroup(v_lngWorkGroup)
+  activate cbsCollectionPeriod
+  cbsCollectionPeriod -> busEnvironment: CreateObject("busEnvironment.cbsEnvironment")
+  activate busEnvironment
+  busEnvironment --> cbsCollectionPeriod: l_objEnv instance
+  cbsCollectionPeriod -> busEnvironment: GetDefaultEffectiveDate
+  busEnvironment --> cbsCollectionPeriod: l_datTodaysDate
+  cbsCollectionPeriod -> busEnvironment: Release Object
+  deactivate busEnvironment
+  cbsCollectionPeriod -> dbCollectionPeriod: CreateObject("dbCollectionPeriod.cdCollectionPeriod")
+  activate dbCollectionPeriod
+  dbCollectionPeriod --> cbsCollectionPeriod: l_objCollectionPeriod instance
+  cbsCollectionPeriod -> dbCollectionPeriod: GetCollectionPeriodsByWorkGroup(v_lngWorkGroup, l_datStartDate, l_datTodaysDate)
+  activate dbCollectionPeriod
+  dbCollectionPeriod --> cbsCollectionPeriod: ADODB.Recordset
+  deactivate dbCollectionPeriod
+  cbsCollectionPeriod -> dbCollectionPeriod: Release Object
+  deactivate dbCollectionPeriod
+  cbsCollectionPeriod --> Caller: ADODB.Recordset
+  deactivate cbsCollectionPeriod
+  alt On Error GoTo GetCollectionPeriodsByWorkGroup_EH
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: TrsRaiseError(m_strCMODULENAME, "GetCollectionPeriodsByWorkGroup", ...)
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error Reported
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Nothing
+  end
+end
+group GetLatestProcessedPayPeriodEndDate
+  Caller -> cbsCollectionPeriod: GetLatestProcessedPayPeriodEndDate(v_strPayrollGroupCode)
+  activate cbsCollectionPeriod
+  cbsCollectionPeriod -> dbCollectionPeriod: Instantiate COM Object
+  activate dbCollectionPeriod
+  alt Successful Execution
+    cbsCollectionPeriod -> dbCollectionPeriod: GetLatestProcessedPayPeriodEndDate(v_strPayrollGroupCode)
+    dbCollectionPeriod -> Database: Query Latest Processed Pay Period End Date
+    activate Database
+    Database --> dbCollectionPeriod: Pay Period End Date
+    deactivate Database
+    dbCollectionPeriod --> cbsCollectionPeriod: Pay Period End Date
+    cbsCollectionPeriod -> dbCollectionPeriod: Release COM Object
+    deactivate dbCollectionPeriod
+    cbsCollectionPeriod --> Caller: Pay Period End Date
+  else Error Occurred
+    cbsCollectionPeriod -> dbCollectionPeriod: Release COM Object
+    deactivate dbCollectionPeriod
+    cbsCollectionPeriod -> TrsRaiseErrorSystem: TrsRaiseError(module, method, ...)
+    activate TrsRaiseErrorSystem
+    TrsRaiseErrorSystem --> cbsCollectionPeriod: Error Handled
+    deactivate TrsRaiseErrorSystem
+    cbsCollectionPeriod --> Caller: Error
+  end
+  deactivate cbsCollectionPeriod
+end
+@enduml

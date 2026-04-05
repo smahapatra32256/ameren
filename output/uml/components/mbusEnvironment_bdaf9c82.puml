@@ -1,0 +1,54 @@
+@startuml
+participant Caller
+participant mbusEnvironment
+group PreferenceTypeCodeToString
+  Caller -> mbusEnvironment: PreferenceTypeCodeToString(v_eTypeCd)
+  activate mbusEnvironment
+  alt v_eTypeCd is TRISOptions
+    mbusEnvironment --> mbusEnvironment: Set return value to "OPT"
+  else if v_eTypeCd is JobList
+    mbusEnvironment --> mbusEnvironment: Set return value to "JOB"
+  else if v_eTypeCd is ScheduleList
+    mbusEnvironment --> mbusEnvironment: Set return value to "SCH"
+  else if v_eTypeCd is RotationList
+    mbusEnvironment --> mbusEnvironment: Set return value to "ROT"
+  else if v_eTypeCd is ExceptionList
+    mbusEnvironment --> mbusEnvironment: Set return value to "EXC"
+  else if v_eTypeCd is OTReasonList
+    mbusEnvironment --> mbusEnvironment: Set return value to "OTR"
+  else if v_eTypeCd is WorkGroupList
+    mbusEnvironment --> mbusEnvironment: Set return value to "WG"
+  else if v_eTypeCd is TRISPersistence
+    mbusEnvironment --> mbusEnvironment: Set return value to "PST"
+  else
+    mbusEnvironment --> mbusEnvironment: Set return value to Nothing (default for String)
+  end
+  mbusEnvironment --> Caller: String result
+  deactivate mbusEnvironment
+end
+group StringToPreferenceTypeCode
+  Caller -> mbusEnvironment: StringToPreferenceTypeCode(v_strTypeCd)
+  activate mbusEnvironment
+  alt v_strTypeCd = "OPT"
+    mbusEnvironment -> mbusEnvironment: Determine return as TRISOptions
+  else if v_strTypeCd = "JOB"
+    mbusEnvironment -> mbusEnvironment: Determine return as JobList
+  else if v_strTypeCd = "SCH"
+    mbusEnvironment -> mbusEnvironment: Determine return as ScheduleList
+  else if v_strTypeCd = "ROT"
+    mbusEnvironment -> mbusEnvironment: Determine return as RotationList
+  else if v_strTypeCd = "EXC"
+    mbusEnvironment -> mbusEnvironment: Determine return as ExceptionList
+  else if v_strTypeCd = "OTR"
+    mbusEnvironment -> mbusEnvironment: Determine return as OTReasonList
+  else if v_strTypeCd = "WG"
+    mbusEnvironment -> mbusEnvironment: Determine return as WorkGroupList
+  else if v_strTypeCd = "PST"
+    mbusEnvironment -> mbusEnvironment: Determine return as TRISPersistence
+  else
+    mbusEnvironment -> mbusEnvironment: Determine return as default PreferenceTypeCode
+  end
+  mbusEnvironment --> Caller: PreferenceTypeCode value
+  deactivate mbusEnvironment
+end
+@enduml

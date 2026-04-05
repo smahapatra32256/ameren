@@ -1,0 +1,101 @@
+@startuml
+participant Caller
+participant "cdEffectiveDateRulesProxy.cls" as Proxy
+participant System
+participant "dbRules.cdEffectiveDateRules" as DBRules
+participant TrsRaiseError
+group DoesEffectiveDateRuleApply
+  Caller -> Proxy: DoesEffectiveDateRuleApply(v_lngRule, v_lngDataType, v_strValue, v_datDate)
+  activate Proxy
+  Proxy -> System: CreateObject("dbRules.cdEffectiveDateRules")
+  activate System
+  System --> Proxy: l_objcdEffectiveDateRules instance
+  deactivate System
+  Proxy -> DBRules: DoesEffectiveDateRuleApply(v_lngRule, v_lngDataType, v_strValue, v_datDate)
+  activate DBRules
+  DBRules --> Proxy: result (Boolean)
+  deactivate DBRules
+  Proxy --> Caller: result (Boolean)
+  deactivate Proxy
+end
+group GetGroupRecords
+  Caller -> Proxy: GetGroupRecords(v_strGroupName, v_varKeys, r_varKeyArray, r_varColumnArray)
+  activate Proxy
+  alt Successful execution
+    Proxy -> System: CreateObject("dbRules.cdEffectiveDateRules")
+    activate System
+    System --> Proxy: instance
+    deactivate System
+    Proxy -> DBRules: GetGroupRecords(v_strGroupName, v_varKeys, r_varKeyArray, r_varColumnArray)
+    activate DBRules
+    DBRules --> Proxy: result
+    deactivate DBRules
+    Proxy --> Caller: result
+  else Error Occurred
+    Proxy -> TrsRaiseError: Raise Error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error Details
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group InvalidateRulesCache
+  Caller -> Proxy: InvalidateRulesCache(v_lngRule, v_lngBusTypeCd, v_strRgValueCd)
+  activate Proxy
+  Proxy -> System: CreateObject("dbRules.cdEffectiveDateRules")
+  activate System
+  System --> Proxy: Object instance created
+  deactivate System
+  Proxy -> DBRules: InvalidateRulesCache(v_lngRule, v_lngBusTypeCd, v_strRgValueCd)
+  activate DBRules
+  DBRules --> Proxy:
+  deactivate DBRules
+  Proxy --> Caller:
+  deactivate Proxy
+end
+group GetEffectiveDateRule
+  Caller -> Proxy: GetEffectiveDateRule(v_lngRule, v_strSubRule)
+  activate Proxy
+  alt No Error
+    Proxy -> System: CreateObject("dbRules.cdEffectiveDateRules")
+    activate System
+    System --> Proxy: Object created
+    deactivate System
+    Proxy -> DBRules: GetEffectiveDateRule(v_lngRule, v_strSubRule)
+    activate DBRules
+    DBRules --> Proxy: ADODB.Recordset
+    deactivate DBRules
+    Proxy --> Caller: ADODB.Recordset
+  else Error Occurred
+    Proxy -> TrsRaiseError: Raise Error "dbRules.cdEffectiveDateRules", "GetEffectiveDateRule"
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error Handled
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+group GetEffectiveDateRules
+  Caller -> Proxy: GetEffectiveDateRules(v_varRules)
+  activate Proxy
+  Proxy -> System: CreateObject("dbRules.cdEffectiveDateRules")
+  activate System
+  System --> Proxy: Object created
+  deactivate System
+  alt No Error
+    Proxy -> DBRules: GetEffectiveDateRules(v_varRules)
+    activate DBRules
+    DBRules --> Proxy: ADODB.Recordset
+    deactivate DBRules
+    Proxy --> Caller: ADODB.Recordset
+  else Error Occurs
+    Proxy -> TrsRaiseError: Raise Error
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error Details
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+@enduml

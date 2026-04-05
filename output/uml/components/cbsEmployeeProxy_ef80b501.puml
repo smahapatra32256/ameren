@@ -1,0 +1,38 @@
+@startuml
+participant Caller
+participant "cbsEmployeeProxy.cls" as Proxy
+participant "Runtime"
+participant "busEmployee.cbsEmployee" as BusEmployee
+participant "TrsRaiseError"
+database "Database"
+group Each method in cbsEmployeeProxy.cls
+  Caller -> Proxy: MethodCall(...)
+  activate Proxy
+  Proxy -> Runtime: CreateObject("busEmployee.cbsEmployee")
+  activate Runtime
+  Runtime --> Proxy: Object instance (l_objcbsEmployee)
+  deactivate Runtime
+  alt Successful execution
+    Proxy -> BusEmployee: MethodCall(...)
+    activate BusEmployee
+    note right of BusEmployee: Performs business logic and data access
+    BusEmployee -> Database: Query data (e.g., GetEmployeeSkills)
+    activate Database
+    Database --> BusEmployee: ADODB.Recordset / Data
+    deactivate Database
+    BusEmployee --> Proxy: Result (e.g., ADODB.Recordset, String, Boolean)
+    deactivate BusEmployee
+    Proxy -> Proxy: Set l_objcbsEmployee = Nothing
+    Proxy --> Caller: Result
+  else Error occurred
+    note right of Proxy: On Error GoTo eh
+    Proxy -> Proxy: Set l_objcbsEmployee = Nothing
+    Proxy -> TrsRaiseError: Raise Error("busEmployee.cbsEmployee", "MethodName", ...)
+    activate TrsRaiseError
+    TrsRaiseError --> Proxy: Error Handled/Logged/Propagated
+    deactivate TrsRaiseError
+    Proxy --> Caller: Error
+  end
+  deactivate Proxy
+end
+@enduml

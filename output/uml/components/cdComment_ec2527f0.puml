@@ -1,0 +1,112 @@
+@startuml
+participant Caller
+participant "cdComment.cls" as cdComment
+participant "util_DBConnectMgr.clsuDBConnectMgr" as DBConnectMgr
+participant "ADODB.Connection" as ADODBConnection
+participant "ADODB.Recordset" as ADODBRecordset
+database Database
+participant ErrorHandler
+Caller -> cdComment: GetComment(v_aryEmpNum, v_dtStartDate, v_dtEndDate)
+activate cdComment
+cdComment -> DBConnectMgr: Instantiate
+activate DBConnectMgr
+DBConnectMgr --> cdComment: l_objDBConnectMgr
+deactivate DBConnectMgr
+cdComment -> ADODBConnection: Instantiate
+activate ADODBConnection
+ADODBConnection --> cdComment: l_objCN
+deactivate ADODBConnection
+cdComment -> DBConnectMgr: GetConnectionString("SHADOWDIRECT")
+activate DBConnectMgr
+DBConnectMgr --> cdComment: Connection String
+deactivate DBConnectMgr
+cdComment -> ADODBConnection: Open Connection
+activate ADODBConnection
+ADODBConnection --> cdComment: Connection Opened
+deactivate ADODBConnection
+alt v_aryEmpNum is Array
+  cdComment -> cdComment: BuildInClause for EmpNum
+  cdComment --> cdComment: l_strInClauseEmp
+else
+  cdComment -> cdComment: Format single EmpNum
+  cdComment --> cdComment: l_strInClauseEmp
+end
+cdComment -> cdComment: Build base SQL query
+alt v_dtStartDate > m_datCOPTIONALSTARTDATE
+  cdComment -> cdComment: Format dates for DB2
+  ' Internal call to FormatForDB2 for v_dtStartDate
+  cdComment -> cdComment: FormatForDB2(v_dtStartDate)
+  activate cdComment
+  cdComment -> cdComment: Initialize result to empty string
+  cdComment -> cdComment: Determine data type of v_varData
+  alt Data type is String
+    cdComment -> cdComment: Format string for DB2 (add quotes, escape internal quotes)
+  else Data type is Integer or Long
+    cdComment -> cdComment: Convert number to string
+  else Data type is Date
+    cdComment -> cdComment: Format date to 'mm/dd/yyyy' with quotes
+  else Other data type
+    cdComment -> cdComment: Apply default formatting
+  end
+  alt Function completes successfully
+    cdComment --> cdComment: formattedString
+  else An error occurs
+    cdComment -> ErrorHandler: TrsRaiseError(moduleName, methodName, ..., v_varData)
+    activate ErrorHandler
+    ErrorHandler --> cdComment: Error processed
+    deactivate ErrorHandler
+    cdComment --> cdComment: Error occurred
+  end
+  deactivate cdComment
+  ' Internal call to FormatForDB2 for v_dtEndDate
+  cdComment -> cdComment: FormatForDB2(v_dtEndDate)
+  activate cdComment
+  cdComment -> cdComment: Initialize result to empty string
+  cdComment -> cdComment: Determine data type of v_varData
+  alt Data type is String
+    cdComment -> cdComment: Format string for DB2 (add quotes, escape internal quotes)
+  else Data type is Integer or Long
+    cdComment -> cdComment: Convert number to string
+  else Data type is Date
+    cdComment -> cdComment: Format date to 'mm/dd/yyyy' with quotes
+  else Other data type
+    cdComment -> cdComment: Apply default formatting
+  end
+  alt Function completes successfully
+    cdComment --> cdComment: formattedString
+  else An error occurs
+    cdComment -> ErrorHandler: TrsRaiseError(moduleName, methodName, ..., v_varData)
+    activate ErrorHandler
+    ErrorHandler --> cdComment: Error processed
+    deactivate ErrorHandler
+    cdComment --> cdComment: Error occurred
+  end
+  deactivate cdComment
+  cdComment --> cdComment: Append date range conditions to SQL
+end
+cdComment -> ADODBRecordset: Instantiate
+activate ADODBRecordset
+ADODBRecordset --> cdComment: l_adrsComments
+deactivate ADODBRecordset
+cdComment -> ADODBRecordset: Set CursorLocation (adUseClient)
+activate ADODBRecordset
+ADODBRecordset --> cdComment: CursorLocation Set
+deactivate ADODBRecordset
+cdComment -> Database: Execute SQL Query (l_strSQL)
+activate Database
+Database --> cdComment: Recordset Data
+deactivate Database
+alt l_adrsComments is not Nothing
+  cdComment --> Caller: ADODB.Recordset
+else
+  cdComment --> Caller: Nothing
+end
+deactivate cdComment
+alt On Error (GetComment_Err)
+  cdComment -> ErrorHandler: TrsRaiseError(ModuleName, MethodName, ..., SQL, True)
+  activate ErrorHandler
+  ErrorHandler --> cdComment: Error Processed
+  deactivate ErrorHandler
+  cdComment --> Caller: Error
+end
+@enduml
