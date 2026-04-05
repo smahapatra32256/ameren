@@ -8,7 +8,7 @@ venv/
 .venv/
 
 !output/
-
+.gemini/
 
 # Outputs and user data
 output/*
