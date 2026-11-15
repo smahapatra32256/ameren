@@ -1,0 +1,31 @@
+@startuml
+' Activity Diagram for UserRepository Class
+
+partition "UserRepository" {
+
+  ' Flow for GetUserRole function
+  start as GetUserRoleEntry
+  GetUserRoleEntry --> "GetUserRole(username) invoked"
+  if "username = 'admin'?" then (yes)
+    --> "Return 'Administrator'"
+  else (no)
+    if "username = 'manager'?" then (yes)
+      --> "Return 'Manager'"
+    else (no)
+      --> "Return 'Employee'"
+    endif
+  endif
+  --> stop as GetUserRoleExit
+
+  ' Flow for IsUserActive function
+  start as IsUserActiveEntry
+  IsUserActiveEntry --> "IsUserActive(username) invoked"
+  if "username.StartsWith('test')?" then (yes)
+    --> "Return False"
+  else (no)
+    --> "Return True"
+  endif
+  --> stop as IsUserActiveExit
+
+}
+@enduml

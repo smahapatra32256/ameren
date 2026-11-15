@@ -1,0 +1,17 @@
+@startuml
+start
+:Call repo.IsUserActive(username);
+if (Not isActive?) then (true)
+  :Return False;
+  stop
+else (false)
+  :Call repo.GetUserRole(username);
+  if (role = "Administrator" Or role = "Manager"?) then (true)
+    :Return True;
+    stop
+  else (false)
+    :Return False;
+    stop
+  endif
+endif
+@enduml

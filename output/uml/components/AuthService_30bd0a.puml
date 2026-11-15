@@ -1,0 +1,23 @@
+@startuml
+start
+
+:AuthService.CanAccessSystem(username) called;
+
+:Call repo.IsUserActive(username);
+note right: Checks if username starts with "test"\nReturns True if active, False otherwise
+
+if (IsUserActive returned False?) then (Yes)
+  :Return False (User Inactive);
+else (No, User is Active)
+  :Call repo.GetUserRole(username);
+  note right: Returns "Administrator", "Manager", or "Employee"
+
+  if (Role is "Administrator" or "Manager"?) then (Yes)
+    :Return True (Access Granted);
+  else (No, Role is "Employee")
+    :Return False (Access Denied);
+  endif
+endif
+
+stop
+@enduml

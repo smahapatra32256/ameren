@@ -1,0 +1,14 @@
+@startuml
+start
+:GetUserRole(username) called;
+if (username = "admin"?) then (yes)
+  :Return "Administrator";
+else (no)
+  if (username = "manager"?) then (yes)
+    :Return "Manager";
+  else (no)
+    :Return "Employee";
+  endif
+endif
+stop
+@enduml

@@ -1,0 +1,14 @@
+@startuml
+start
+:Instantiate AuthService;
+if (auth.CanAccessSystem(user)?) then (yes)
+  :Display "Access Granted for " + user;
+  call LoadDashboard(user)
+    :Initialize the Dashboard UI;
+    :Display "Loading specialized UI components...";
+  end call
+else (no)
+  :Display "Access Denied for " + user;
+endif
+stop
+@enduml

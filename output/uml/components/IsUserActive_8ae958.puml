@@ -1,0 +1,10 @@
+@startuml
+start
+:Function IsUserActive(username As String);
+if (username.StartsWith("test")) then (true)
+  :Return False;
+else (false)
+  :Return True;
+endif
+stop
+@enduml

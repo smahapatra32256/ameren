@@ -1,0 +1,7 @@
+@startuml
+start
+:AuthService.New() called;
+:Create new UserRepository object;
+:Assign new UserRepository object to Me.repo;
+stop
+@enduml

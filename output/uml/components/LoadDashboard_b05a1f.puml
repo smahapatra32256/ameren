@@ -1,0 +1,5 @@
+@startuml
+start
+:Display "Loading specialized UI components...";
+stop
+@enduml

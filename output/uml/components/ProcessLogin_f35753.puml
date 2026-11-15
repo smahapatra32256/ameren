@@ -1,0 +1,11 @@
+@startuml
+start
+:Create new AuthService instance;
+if (auth.CanAccessSystem(user)?) then (true)
+  :Console.WriteLine("Access Granted for " & user);
+  :LoadDashboard(user);
+else (false)
+  :Console.WriteLine("Access Denied for " & user);
+endif
+stop
+@enduml
